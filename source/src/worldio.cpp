@@ -62,7 +62,7 @@ void writemap (char *name, int msize, uchar *mdata)
 uchar *readmap (char *name, int *size, int *revision)
 {
     setnames (name);
-    auto *data = (uchar *)loadfile (cgzname, size);
+    auto data = (uchar *)loadfile (cgzname, size);
     if (!data)
     {
         conoutf ("\f3could not read map %s", cgzname);
@@ -102,7 +102,7 @@ void writecfggz (char *name, int size, int sizegz, uchar *data)
 uchar *readmcfggz (char *name, int *size, int *sizegz)
 {
     setnames (name);
-    auto *gzbuf = new uchar[GZBUFSIZE];
+    auto gzbuf = new uchar[GZBUFSIZE];
     auto *data = (uchar *)loadfile (mcfname, size, "r");
     if (data && *size < MAXCFGFILESIZE)
     {

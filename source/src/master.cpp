@@ -604,7 +604,7 @@ bool checkclientinput (client &c)
             confauth (c, id, val);
         }
         // :for AUTH
-        c.inputpos = &c.input[c.inputpos] - end;
+        c.inputpos = c.input[c.inputpos] - end;
         memmove (c.input, end, c.inputpos);
 
         end = (char *)memchr (c.input, '\n', c.inputpos);
