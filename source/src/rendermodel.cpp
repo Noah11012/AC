@@ -2,7 +2,7 @@
 
 VARP(animationinterpolationtime, 0, 150, 1000);
 
-model *loadingmodel = NULL;
+model *loadingmodel = nullptr;
 mapmodelattributes loadingattributes;
 
 #include "modelcache.h"
@@ -135,7 +135,7 @@ void mapmodel(int *rad, int *h, int *zoff, char *scale, char *name,
         scripterr();
       }
     }
-    mmi.m = NULL;
+    mmi.m = nullptr;
 
     filtertext(name, name, FTXT__MEDIAFILEPATH);
     formatstring(mmi.name)("%s%s", mmpath,
@@ -158,7 +158,7 @@ void mapmodelreset() {
 COMMAND(mapmodelreset, "");
 
 mapmodelinfo *getmminfo(int i) {
-  return mapmodels.inrange(i) ? &mapmodels[i] : NULL;
+  return mapmodels.inrange(i) ? &mapmodels[i] : nullptr;
 }
 
 COMMANDF(mapmodelslotname, "i", (int *idx) {
@@ -228,13 +228,13 @@ void editmapmodelslot(int *n, char *rad, char *h, char *zoff, char *scale,
     if ((*rad || *h || *zoff || *scale || *name) &&
         !noteditmode("editmapmodelslot") &&
         !multiplayer("editmapmodelslot")) {  // change attributes
-      if (*rad) mmi.rad = strtol(rad, NULL, 0);
-      if (*h) mmi.h = strtol(h, NULL, 0);
-      if (*zoff) mmi.zoff = strtol(zoff, NULL, 0);
+      if (*rad) mmi.rad = strtol(rad, nullptr, 0);
+      if (*h) mmi.h = strtol(h, nullptr, 0);
+      if (*zoff) mmi.zoff = strtol(zoff, nullptr, 0);
       float s = atof(scale);
       if (s < 0.25f || s > 4.0f) s = 1.0f;
       if (*scale) mmi.scale = s;
-      mmi.m = NULL;
+      mmi.m = nullptr;
       if (*name) formatstring(mmi.name)("%s%s", mmpath, name);
       unsavededits++;
       mapmodelchanged = 1;
@@ -336,7 +336,7 @@ void sortmapmodelslots(char **args, int numargs) {
   mapmodels.shrink(tempslots.length());
   loopv(tempslots) {
     mapmodels[i] = tempslots[i].m;
-    mapmodels[i].m = NULL;
+    mapmodels[i].m = nullptr;
   }
   unsavededits++;
   mapmodelchanged = 1;
@@ -352,7 +352,7 @@ void setmodelattributes(const char *name, mapmodelattributes &ma) {
                              // path (next release: ban them)
   else
     return;  // we only want mapmodels
-  mapmodelattributes **mrp = mdlregistry.access(name), *mr = mrp ? *mrp : NULL,
+  mapmodelattributes **mrp = mdlregistry.access(name), *mr = mrp ? *mrp : nullptr,
                      *r = mr;
   if (!r) {
     r = new mapmodelattributes;
@@ -363,7 +363,7 @@ void setmodelattributes(const char *name, mapmodelattributes &ma) {
       if (!r->n[i]) mapmodelchanged = 1;
       DELSTRING(r->n[i]);  // overwrite existing attributes
       r->n[i] = ma.n[i];
-      ma.n[i] = NULL;
+      ma.n[i] = nullptr;
     }
   }
   if (!mr) mdlregistry.access(r->name, r);
@@ -378,7 +378,7 @@ void mapmodelregister_(
   {
     defformatstring(p)("%s%s", mmpath, args[0]);
     loopirev(--numargs < MMA_NUM ? numargs : MMA_NUM) ma.n[i] =
-        *args[i + 1] ? newstring(args[i + 1]) : NULL;
+        *args[i + 1] ? newstring(args[i + 1]) : nullptr;
     setmodelattributes(p, ma);
   }
 }
@@ -403,13 +403,13 @@ model *loadmodel(
 {
   if (!name)  // name == NULL -> get index i from mapmodels[]
   {
-    if (!mapmodels.inrange(i)) return NULL;
+    if (!mapmodels.inrange(i)) return nullptr;
     mapmodelinfo &mmi = mapmodels[i];
     if (mmi.m) return mmi.m;  // mapmodels[i] was already loaded
     name = mmi.name;
   }
   if (mdlnotfound.access(name))
-    return NULL;  // already tried to find that earlier -> not available
+    return nullptr;  // already tried to find that earlier -> not available
   model **mm = mdllookup.access(name);
   model *m;
   if (mm)
@@ -427,7 +427,7 @@ model *loadmodel(
       if (!m->load())  // md3 didn't load -> we don't have that model
       {
         delete m;
-        m = loadingmodel = NULL;
+        m = loadingmodel = nullptr;
         if (trydl && !strncmp(name, mmpath, strlen(mmpath)))
           requirepackage(PCK_MAPMODEL, name);
         else {
@@ -450,7 +450,7 @@ model *loadmodel(
         flagmapconfigerror(LWW_MODELERR);
       }
     }
-    loadingmodel = NULL;
+    loadingmodel = nullptr;
   }
   if (mapmodels.inrange(i) && !mapmodels[i].m) mapmodels[i].m = m;
   return m;
@@ -464,8 +464,8 @@ void resetmdlnotfound() {
 }
 
 void getmapmodelattributes(char *name, char *attr) {
-  const char *res = NULL;
-  mapmodelattributes **ap = mdlregistry.access(name), *a = ap ? *ap : NULL;
+  const char *res = nullptr;
+  mapmodelattributes **ap = mdlregistry.access(name), *a = ap ? *ap : nullptr;
   if (a) {
     int i = getlistindex(attr, mdlattrnames, true, MMA_NUM);
     if (i < MMA_NUM)
@@ -491,8 +491,8 @@ void updatemapmodeldependencies() {
     foundone = false;
     loopvk(mapmodels) if (mapmodels[k].flags & MMF_TEMP_USED) {
       const char *name = mmshortname(mapmodels[k].name);
-      mapmodelattributes **ap = mdlregistry.access(name), *a = ap ? *ap : NULL;
-      const char *dep = a ? a->n[MMA_REQUIRES] : NULL;
+      mapmodelattributes **ap = mdlregistry.access(name), *a = ap ? *ap : nullptr;
+      const char *dep = a ? a->n[MMA_REQUIRES] : nullptr;
       if (dep && *dep) {
         bool found = false;
         loopv(mapmodels) if (!strcmp(mmshortname(mapmodels[i].name), dep)) {
@@ -627,7 +627,7 @@ void startmodelbatches() {
 }
 
 batchedmodel &addbatchedmodel(model *m) {
-  modelbatch *b = NULL;
+  modelbatch *b = nullptr;
   if (m->batch >= 0 && m->batch < numbatches && batches[m->batch]->m == m)
     b = batches[m->batch];
   else {
@@ -643,7 +643,7 @@ batchedmodel &addbatchedmodel(model *m) {
 }
 
 void renderbatchedmodel(model *m, batchedmodel &b) {
-  modelattach *a = NULL;
+  modelattach *a = nullptr;
   if (b.attached >= 0) a = &modelattached[b.attached];
 
   if (stenciling) {
@@ -652,7 +652,7 @@ void renderbatchedmodel(model *m, batchedmodel &b) {
     return;
   }
 
-  int x = (int)b.o.x, y = (int)b.o.y;
+  auto x = (int)b.o.x, y = (int)b.o.y;
   if (!OUTBORD(x, y)) {
     sqr *s = S(x, y);
     glColor3ub(s->r, s->g, s->b);
@@ -686,14 +686,14 @@ void renderbatchedmodel(model *m, batchedmodel &b) {
 }
 
 void renderbatchedmodelshadow(model *m, batchedmodel &b) {
-  int x = (int)b.o.x, y = (int)b.o.y;
+  auto x = (int)b.o.x, y = (int)b.o.y;
   if (OUTBORD(x, y)) return;
   sqr *s = S(x, y);
   vec center(b.o.x, b.o.y, s->floor);
   if (s->type == FHF) center.z -= s->vdelta / 4.0f;
   if (dynshadowquad && center.z - 0.1f > b.o.z) return;
   center.z += 0.1f;
-  modelattach *a = NULL;
+  modelattach *a = nullptr;
   if (b.attached >= 0) a = &modelattached[b.attached];
   float intensity = dynshadow / 100.0f;
   if (dynshadowdecay) switch (b.anim & ANIM_INDEX) {
@@ -762,7 +762,7 @@ void endmodelbatches(bool flush) {
   }
   if (translucent.length()) {
     translucent.sort(sorttranslucentmodels);
-    model *lastmodel = NULL;
+    model *lastmodel = nullptr;
     loopv(translucent) {
       translucentmodel &tm = translucent[i];
       if (lastmodel != tm.m) {
@@ -862,7 +862,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o,
 
   m->startrender();
 
-  int x = (int)o.x, y = (int)o.y;
+  auto x = (int)o.x, y = (int)o.y;
   if (!OUTBORD(x, y)) {
     sqr *s = S(x, y);
     if (!(anim & ANIM_TRANSLUCENT) && dynshadow && m->hasshadows() &&
@@ -986,7 +986,7 @@ bool preload_mapmodels(bool trydl) {
       missing++;
   }
   loopv(mapmodels) if ((mapmodels[i].flags & (MMF_REQUIRED | MMF_TEMP_USED)) &&
-                       !loadmodel(NULL, i, trydl)) missing++;
+                       !loadmodel(nullptr, i, trydl)) missing++;
   return !missing;
 }
 
@@ -1077,8 +1077,8 @@ static vector<char *> playerskinlist;
 
 const char *getclientskin(const char *name, const char *suf) {
   static string tmp;
-  int suflen = (int)strlen(suf), namelen = (int)strlen(name);
-  const char *s, *r = NULL;
+  auto suflen = (int)strlen(suf), namelen = (int)strlen(name);
+  const char *s, *r = nullptr;
   loopv(playerskinlist) {
     s = playerskinlist[i];
     int sl = (int)strlen(s) - suflen;
@@ -1107,7 +1107,7 @@ void updateclientname(playerent *d) {
 void renderclientp(playerent *d) {
   if (!d) return;
   int team = team_base(d->team);
-  const char *cs = NULL, *skinbase = SKINBASE,
+  const char *cs = nullptr, *skinbase = SKINBASE,
              *teamname = team_basestring(team);
   int skinid = 1 + d->skin();
   string skin;
@@ -1138,7 +1138,7 @@ void renderclientp(playerent *d) {
     formatstring(vwep)("weapons/%s/world", d->weaponsel->info.modelname);
   else
     vwep[0] = 0;
-  renderclient(d, "playermodels", vwep[0] ? vwep : NULL,
+  renderclient(d, "playermodels", vwep[0] ? vwep : nullptr,
                -(int)textureload(skin)->id);
 }
 

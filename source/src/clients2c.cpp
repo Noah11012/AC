@@ -10,7 +10,7 @@ VARP(networkdebug, 0, 0, 1);
 extern bool watchingdemo;
 extern string clientpassword;
 
-void *downloaddemomenu = NULL;
+void *downloaddemomenu = nullptr;
 static vector<mline> demo_mlines;
 
 packetqueue pktlogger;
@@ -94,7 +94,7 @@ void updateplayerpos(playerent *d) {
   const float dy = player1->o.y - d->o.y;
   const float dz = player1->o.z - d->o.z;
   const float rz = player1->aboveeye + d->eyeheight;
-  const float fx = (float)fabs(dx), fy = (float)fabs(dy), fz = (float)fabs(dz);
+  const auto fx = (float)fabs(dx), fy = (float)fabs(dy), fz = (float)fabs(dz);
   if (fx < r && fy < r && fz < rz && d->state != CS_DEAD) {
     if (fx < fy)
       d->o.y += dy < 0 ? r - fy : -(r - fy);  // push aside
@@ -193,7 +193,7 @@ void parsepositions(ucharbuf &p) {
         d->yaw = yaw;
         d->pitch = pitch;
         if (d->weaponsel->type == GUN_SNIPER) {
-          sniperrifle *sr = (sniperrifle *)d->weaponsel;
+          auto *sr = (sniperrifle *)d->weaponsel;
           sr->scoped = d->scoping = scoping;
         }
         d->strafe = (f & 3) == 3 ? -1 : f & 3;
@@ -247,7 +247,7 @@ void parsepositions(ucharbuf &p) {
 }
 
 extern int checkarea(int maplayout_factor, char *maplayout);
-char *mlayout = NULL;
+char *mlayout = nullptr;
 int Mv = 0, Ma = 0, F2F = 1000 * MINFF;  // moved up:, MA = 0;
 float Mh = 0;
 extern int connected;
@@ -427,7 +427,7 @@ void onChangeVote(int mod, int id) {
 }
 
 VARP(voicecomsounds, 0, 1, 2);
-bool medals_arrived = 0;
+bool medals_arrived = false;
 medalsst a_medals[END_MDS];
 void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false) {
   static char text[MAXTRANS];
@@ -737,7 +737,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false) {
         findplayerstart(player1, false, arenaspawn);
         arenaintermission = 0;
         if (m_arena && !localwrongmap) {
-          if (connected) closemenu(NULL);
+          if (connected) closemenu(nullptr);
           conoutf("new round starting... fight!");
           hudeditf(HUDMSG_TIMER, "FIGHT!");
           if (m_botmode) BotManager.RespawnBots();
@@ -854,7 +854,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false) {
               int mcn = getint(p);
               int mtype = getint(p);
               int mitem = getint(p);
-              a_medals[mtype].assigned = 1;
+              a_medals[mtype].assigned = true;
               a_medals[mtype].cn = mcn;
               a_medals[mtype].item = mitem;
             }
@@ -873,7 +873,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false) {
         int gun = getint(p), damage = getint(p);
         vec dir;
         loopk(3) dir[k] = getint(p) / DNF;
-        player1->hitpush(damage, dir, NULL, gun);
+        player1->hitpush(damage, dir, nullptr, gun);
         break;
       }
 
@@ -1295,9 +1295,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false) {
           n_no = getint(p);
           type = getint(p);
         }
-        if (type == SA_MAP && d == NULL) d = player1;  // gonext uses this
+        if (type == SA_MAP && d == nullptr) d = player1;  // gonext uses this
         if (type < 0 || type >= SA_NUM || !d) return;
-        votedisplayinfo *v = NULL;
+        votedisplayinfo *v = nullptr;
         string a1, a2;
         switch (type) {
           case SA_MAP: {
@@ -1323,14 +1323,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false) {
           case SA_SERVERDESC:
             getstring(text, p);
             filtertext(text, text, FTXT__SERVDESC);
-            v = newvotedisplayinfo(d, type, text, NULL);
+            v = newvotedisplayinfo(d, type, text, nullptr);
             break;
           case SA_STOPDEMO:
             // compatibility
             break;
           case SA_REMBANS:
           case SA_SHUFFLETEAMS:
-            v = newvotedisplayinfo(d, type, NULL, NULL);
+            v = newvotedisplayinfo(d, type, nullptr, nullptr);
             break;
           case SA_FORCETEAM:
             itoa(a1, getint(p));
@@ -1339,7 +1339,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false) {
             break;
           default:
             itoa(a1, getint(p));
-            v = newvotedisplayinfo(d, type, a1, NULL);
+            v = newvotedisplayinfo(d, type, a1, nullptr);
             break;
         }
         displayvote(v);
@@ -1510,7 +1510,7 @@ const char *parseDemoFilename(char *srvfinfo) {
     char sep[] = ":";
     char *pch, *b;
     pch = strtok_r(srvfinfo, sep, &b);
-    while (pch != NULL && fip < 4) {
+    while (pch != nullptr && fip < 4) {
       fip++;
       switch (fip) {
         case 1:
@@ -1528,7 +1528,7 @@ const char *parseDemoFilename(char *srvfinfo) {
         default:
           break;
       }
-      pch = strtok_r(NULL, sep, &b);
+      pch = strtok_r(nullptr, sep, &b);
     }
     copystring(srvmap, pch);
   }
@@ -1598,7 +1598,7 @@ void receivefile(uchar *data, int len) {
 
     default:
       p.len = 0;
-      parsemessages(-1, NULL, p);
+      parsemessages(-1, nullptr, p);
       break;
   }
 }
@@ -1612,7 +1612,7 @@ void servertoclient(int chan, uchar *buf, int len,
       parsepositions(p);
       break;
     case 1:
-      parsemessages(-1, NULL, p, demo);
+      parsemessages(-1, nullptr, p, demo);
       break;
     case 2:
       receivefile(p.buf, p.maxlen);

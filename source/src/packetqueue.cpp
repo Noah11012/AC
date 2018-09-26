@@ -2,7 +2,7 @@
 
 #include "cube.h"
 
-packetqueue::packetqueue() {}
+packetqueue::packetqueue() = default;
 
 packetqueue::~packetqueue() { clear(); }
 
@@ -17,7 +17,7 @@ void packetqueue::queue(ENetPacket *p) {
 bool packetqueue::flushtolog(const char *logfile) {
   if (packets.empty()) return false;
 
-  stream *f = NULL;
+  stream *f = nullptr;
   if (logfile && logfile[0]) f = openfile(logfile, "w");
   if (!f) return false;
 

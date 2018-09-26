@@ -7,7 +7,7 @@
 VARP(gainscale, 1, 90, 100);
 int warn_about_unregistered_sound = 0;
 location::location(int sound, const worldobjreference &r, int priority)
-    : cfg(NULL), src(NULL), ref(NULL), stale(false), playmillis(0) {
+    : cfg(nullptr), src(nullptr), ref(nullptr), stale(false), playmillis(0) {
   vector<soundconfig> &sounds =
       (r.type == worldobjreference::WR_ENTITY ? mapsounds : gamesounds);
   if (!sounds.inrange(sound)) {
@@ -91,7 +91,7 @@ void location::evaluateworldobjref() { src->sourcerelative(ref->nodistance()); }
 void location::onsourcereassign(source *s) {
   if (s == src) {
     stale = true;
-    src = NULL;
+    src = nullptr;
   }
 }
 
@@ -132,9 +132,9 @@ void location::updatepos() {
       if (ref->nodistance()) {
         // own distance model for entities/mapsounds: linear & clamping
 
-        const float innerradius =
+        const auto innerradius =
             float(eref.ent->attr3);  // full gain area / size property
-        const float outerradius =
+        const auto outerradius =
             float(eref.ent->attr2);  // fading gain area / radius property
 
         if (dist <= innerradius)
@@ -218,7 +218,7 @@ void location::drop() {
 location *locvector::find(
     int sound, worldobjreference *ref,
     const vector<soundconfig> &soundcollection /* = gamesounds*/) {
-  if (sound < 0 || sound >= soundcollection.length()) return NULL;
+  if (sound < 0 || sound >= soundcollection.length()) return nullptr;
   loopi(ulen) if (buf[i] && !buf[i]->stale) {
     if (buf[i]->cfg != &soundcollection[sound])
       continue;  // check if its the same sound
@@ -226,7 +226,7 @@ location *locvector::find(
       continue;     // optionally check if its the same reference
     return buf[i];  // found
   }
-  return NULL;
+  return nullptr;
 }
 
 void locvector::delete_(int i) { delete remove(i); }
@@ -244,9 +244,9 @@ void locvector::replaceworldobjreference(const worldobjreference &oldr,
 void locvector::updatelocations() {
   // check if camera carrier changed
   bool camchanged = false;
-  static physent *lastcamera = NULL;
+  static physent *lastcamera = nullptr;
   if (lastcamera != camera1) {
-    if (lastcamera != NULL) camchanged = true;
+    if (lastcamera != nullptr) camchanged = true;
     lastcamera = camera1;
   }
 

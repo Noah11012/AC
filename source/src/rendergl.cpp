@@ -7,24 +7,24 @@ bool hasTE = false, hasMT = false, hasMDA = false, hasDRE = false,
      hasstencil = false, hasST2 = false, hasSTW = false, hasSTS = false, hasAF;
 
 // GL_ARB_multitexture
-PFNGLACTIVETEXTUREARBPROC glActiveTexture_ = NULL;
-PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_ = NULL;
-PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2f_ = NULL;
-PFNGLMULTITEXCOORD3FARBPROC glMultiTexCoord3f_ = NULL;
+PFNGLACTIVETEXTUREARBPROC glActiveTexture_ = nullptr;
+PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_ = nullptr;
+PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2f_ = nullptr;
+PFNGLMULTITEXCOORD3FARBPROC glMultiTexCoord3f_ = nullptr;
 
 // GL_EXT_multi_draw_arrays
-PFNGLMULTIDRAWARRAYSEXTPROC glMultiDrawArrays_ = NULL;
-PFNGLMULTIDRAWELEMENTSEXTPROC glMultiDrawElements_ = NULL;
+PFNGLMULTIDRAWARRAYSEXTPROC glMultiDrawArrays_ = nullptr;
+PFNGLMULTIDRAWELEMENTSEXTPROC glMultiDrawElements_ = nullptr;
 
 // GL_EXT_draw_range_elements
-PFNGLDRAWRANGEELEMENTSEXTPROC glDrawRangeElements_ = NULL;
+PFNGLDRAWRANGEELEMENTSEXTPROC glDrawRangeElements_ = nullptr;
 
 // GL_EXT_stencil_two_side
-PFNGLACTIVESTENCILFACEEXTPROC glActiveStencilFace_ = NULL;
+PFNGLACTIVESTENCILFACEEXTPROC glActiveStencilFace_ = nullptr;
 
 // GL_ATI_separate_stencil
-PFNGLSTENCILOPSEPARATEATIPROC glStencilOpSeparate_ = NULL;
-PFNGLSTENCILFUNCSEPARATEATIPROC glStencilFuncSeparate_ = NULL;
+PFNGLSTENCILOPSEPARATEATIPROC glStencilOpSeparate_ = nullptr;
+PFNGLSTENCILFUNCSEPARATEATIPROC glStencilFuncSeparate_ = nullptr;
 
 void *getprocaddress(const char *name) { return SDL_GL_GetProcAddress(name); }
 
@@ -39,7 +39,7 @@ bool hasext(const char *exts, const char *ext) {
 }
 
 void glext(char *ext) {
-  const char *exts = (const char *)glGetString(GL_EXTENSIONS);
+  const auto *exts = (const char *)glGetString(GL_EXTENSIONS);
   intret(hasext(exts, ext) ? 1 : 0);
 }
 COMMAND(glext, "s");
@@ -47,10 +47,10 @@ COMMAND(glext, "s");
 VAR(ati_mda_bug, 0, 0, 1);
 
 void gl_checkextensions() {
-  const char *vendor = (const char *)glGetString(GL_VENDOR);
-  const char *exts = (const char *)glGetString(GL_EXTENSIONS);
-  const char *renderer = (const char *)glGetString(GL_RENDERER);
-  const char *version = (const char *)glGetString(GL_VERSION);
+  const auto *vendor = (const char *)glGetString(GL_VENDOR);
+  const auto *exts = (const char *)glGetString(GL_EXTENSIONS);
+  const auto *renderer = (const char *)glGetString(GL_RENDERER);
+  const auto *version = (const char *)glGetString(GL_VERSION);
   conoutf("Renderer: %s (%s)", renderer, vendor);
   conoutf("Driver: %s", version);
 
@@ -313,8 +313,8 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c) {
 
     int texw = 512;
     int texh = texw;
-    int cols = (int)((x2 - x1) / texw + 1);
-    int rows = (int)((y2 - y1) / texh + 1);
+    auto cols = (int)((x2 - x1) / texw + 1);
+    auto rows = (int)((y2 - y1) / texh + 1);
     xtraverts += cols * rows * 4;
 
     loopj(rows) {
@@ -422,7 +422,7 @@ void renderaboveheadicon(playerent *p) {
   glTranslatef(p->o.x, p->o.y, p->o.z + p->aboveeye);
   glRotatef(camera1->yaw - 180, 0, 0, 1);
   glColor3f(1.0f, 0.0f, 0.0f);
-  static Texture *tex = NULL;
+  static Texture *tex = nullptr;
   if (!tex) tex = textureload("packages/misc/com.png");
   float s = aboveheadiconsize / 100.0f;
   quad(tex->id, vec(s / 2.0f, 0.0f, s), vec(s / -2.0f, 0.0f, 0.0f), 0.0f, 0.0f,
@@ -492,7 +492,7 @@ VARF(fogcolour, 0, DEFAULT_FOGCOLOUR, 0xFFFFFF, flagmapconfigchange());
 float fovy, aspect;
 int farplane;
 
-physent *camera1 = NULL;
+physent *camera1 = nullptr;
 
 void resetcamera() { camera1 = player1; }
 
@@ -638,11 +638,11 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract) {
   if (!reflecttex || (waterrefract && !refracttex)) {
     if (!reflecttex) {
       glGenTextures(1, &reflecttex);
-      createtexture(reflecttex, size, size, NULL, 3, false, false, GL_RGB);
+      createtexture(reflecttex, size, size, nullptr, 3, false, false, GL_RGB);
     }
     if (!refracttex) {
       glGenTextures(1, &refracttex);
-      createtexture(refracttex, size, size, NULL, 3, false, false, GL_RGB);
+      createtexture(refracttex, size, size, nullptr, 3, false, false, GL_RGB);
     }
     reflectlastsize = size;
   }
@@ -790,7 +790,7 @@ void drawminimap(int w, int h) {
   }
   if (!minimaptex) {
     glGenTextures(1, &minimaptex);
-    createtexture(minimaptex, size, size, NULL, 3, false, false, GL_RGB);
+    createtexture(minimaptex, size, size, nullptr, 3, false, false, GL_RGB);
     minimaplastsize = size;
   }
   minimap = true;
@@ -936,7 +936,7 @@ void drawhudgun() {
 
   if (!rendermenumdl() && hudgun && (specthudgun || !player1->isspectating()) &&
       camera1->type == ENT_PLAYER) {
-    playerent *p = (playerent *)camera1;
+    auto *p = (playerent *)camera1;
     if (p->state == CS_ALIVE) p->weaponsel->renderhudmodel();
   }
 

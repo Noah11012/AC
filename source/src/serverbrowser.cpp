@@ -28,7 +28,7 @@ SDL_cond *querycond, *resultcond;
 #define RESOLVERLIMIT 3000
 
 int resolverloop(void *data) {
-  resolverthread *rt = (resolverthread *)data;
+  auto *rt = (resolverthread *)data;
   SDL_LockMutex(resolvermutex);
   SDL_Thread *thread = rt->thread;
   SDL_UnlockMutex(resolvermutex);
@@ -48,7 +48,7 @@ int resolverloop(void *data) {
       resolverresult &rr = resolverresults.add();
       rr.query = rt->query;
       rr.address = address;
-      rt->query = NULL;
+      rt->query = nullptr;
       rt->starttime = 0;
       SDL_CondSignal(resultcond);
     }
@@ -65,7 +65,7 @@ void resolverinit() {
   SDL_LockMutex(resolvermutex);
   loopi(RESOLVERTHREADS) {
     resolverthread &rt = resolverthreads.add();
-    rt.query = NULL;
+    rt.query = nullptr;
     rt.starttime = 0;
     rt.thread = SDL_CreateThread(resolverloop, &rt);
   }
@@ -80,7 +80,7 @@ void resolverstop(resolverthread &rt) {
 #endif
     rt.thread = SDL_CreateThread(resolverloop, &rt);
   }
-  rt.query = NULL;
+  rt.query = nullptr;
   rt.starttime = 0;
   SDL_UnlockMutex(resolvermutex);
 }
@@ -177,9 +177,9 @@ bool resolverwait(const char *name, ENetAddress *address) {
   return resolved;
 }
 
-SDL_Thread *connthread = NULL;
-SDL_mutex *connmutex = NULL;
-SDL_cond *conncond = NULL;
+SDL_Thread *connthread = nullptr;
+SDL_mutex *connmutex = nullptr;
+SDL_cond *conncond = nullptr;
 
 struct connectdata {
   ENetSocket sock;
@@ -255,7 +255,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname,
    * so just leave it (and let it destroy socket) instead of causing problems on
    * some platforms by killing it
    */
-  connthread = NULL;
+  connthread = nullptr;
   SDL_UnlockMutex(connmutex);
 
   return cd.result;
@@ -268,19 +268,19 @@ int lastinfo = 0;
 serverinfo *findserverinfo(ENetAddress address) {
   loopv(servers) if (servers[i]->address.host == address.host &&
                      servers[i]->port == address.port) return servers[i];
-  return NULL;
+  return nullptr;
 }
 
 serverinfo *getconnectedserverinfo() {
   extern ENetPeer *curpeer;
-  if (!curpeer) return NULL;
+  if (!curpeer) return nullptr;
   return findserverinfo(curpeer->address);
 }
 
 static serverinfo *newserver(const char *name, uint ip = ENET_HOST_ANY,
                              int port = CUBE_DEFAULT_SERVER_PORT,
                              int weight = 0) {
-  serverinfo *si = new serverinfo;
+  auto *si = new serverinfo;
   si->address.host = ip;
   si->address.port = CUBE_SERVINFO_PORT(port);
   si->msweight = weight;
@@ -292,7 +292,7 @@ static serverinfo *newserver(const char *name, uint ip = ENET_HOST_ANY,
            enet_address_get_host_ip(&si->address, si->name, sizeof(si->name)) <
                0) {
     delete si;
-    return NULL;
+    return nullptr;
   }
   si->port = port;
 
@@ -401,7 +401,7 @@ void checkresolver() {
   }
   if (!resolving) return;
 
-  const char *name = NULL;
+  const char *name = nullptr;
   ENetAddress addr = {ENET_HOST_ANY, ENET_PORT_ANY};
   while (resolvercheck(&name, &addr)) {
     loopv(servers) {
@@ -430,14 +430,14 @@ void checkpings() {
   while (enet_socket_wait(pingsock, &events, 0) >= 0 && events) {
     int len = enet_socket_receive(pingsock, &addr, &buf, 1);
     if (len <= 0) return;
-    serverinfo *si = NULL;
+    serverinfo *si = nullptr;
     loopv(servers) if (addr.host == servers[i]->address.host &&
                        addr.port == servers[i]->address.port) {
       si = servers[i];
       break;
     }
     if (!si && searchlan)
-      si = newserver(NULL, addr.host, CUBE_SERVINFO_TO_SERV_PORT(addr.port));
+      si = newserver(nullptr, addr.host, CUBE_SERVINFO_TO_SERV_PORT(addr.port));
     if (!si) continue;
 
     ucharbuf p(ping, len);
@@ -699,7 +699,7 @@ int sicompare(serverinfo **ap, serverinfo **bp) {
     return -dir;
 }
 
-void *servmenu = NULL, *searchmenu = NULL, *serverinfomenu = NULL;
+void *servmenu = nullptr, *searchmenu = nullptr, *serverinfomenu = nullptr;
 vector<char *> namelists;
 
 string cursearch, cursearchuc;
@@ -719,7 +719,7 @@ bool matchplayername(const char *name) {
   static string nameuc;
   copystring(nameuc, name);
   strtoupper(nameuc);
-  return strstr(nameuc, cursearchuc) != NULL;
+  return strstr(nameuc, cursearchuc) != nullptr;
 }
 
 VARP(serverbrowserhideip, 0, 0, 2);
@@ -755,7 +755,7 @@ VARF(showonlyfavourites, 0, 0, 100, {
 const char *favcatargname(const char *refdes, int par) {
   static string text[3];
   static int i = 0;
-  if (par < 0 || par >= FC_NUM) return NULL;
+  if (par < 0 || par >= FC_NUM) return nullptr;
   i = (i + 1) % 3;
   formatstring(text[i])("sbfavourite_%s_%s", refdes, fc_als[par]);
   return text[i];
@@ -825,7 +825,7 @@ bool favcatcheckkey(serverinfo &si,
         return si.map[0] && favcatcheckkey(si, key + 1);
       case '$':
         if (key[1]) {
-          formatstring(text)("%s \"%s\" %d %d %d %d %d \"%s\" %d %d", key + 1,
+          formatstring(text)(R"(%s "%s" %d %d %d %d %d "%s" %d %d)", key + 1,
                              si.map, si.mode, si.ping, si.minremain,
                              si.numplayers, si.maxclients, si.name, si.port,
                              si.pongflags);
@@ -847,9 +847,9 @@ bool favcatcheckkey(serverinfo &si,
 }
 
 const char *favcatcheck(serverinfo &si, const char *ckeys,
-                        char *autokeys = NULL) {
-  if (!ckeys) return NULL;
-  static char *nkeys = NULL;
+                        char *autokeys = nullptr) {
+  if (!ckeys) return nullptr;
+  static char *nkeys = nullptr;
   const char *sep = " \t\n\r";
   char *keys = newstring(ckeys), *b, *k = strtok_r(keys, sep, &b);
   bool res = false;
@@ -865,10 +865,10 @@ const char *favcatcheck(serverinfo &si, const char *ckeys,
       if (*nkeys) strcat(nkeys, " ");
       strcat(nkeys, k);
     }
-    k = strtok_r(NULL, sep, &b);
+    k = strtok_r(nullptr, sep, &b);
   }
   delete[] keys;
-  return res ? nkeys : NULL;
+  return res ? nkeys : nullptr;
 }
 
 void serverbrowseralternativeviews(int shiftdirection) {
@@ -881,7 +881,7 @@ void serverbrowseralternativeviews(int shiftdirection) {
   cats.add(0);
   while (k) {
     loopv(favcats) if (!strcmp(favcats[i], k)) cats.add(i + 1);
-    k = strtok_r(NULL, sep, &b);
+    k = strtok_r(nullptr, sep, &b);
   }
   delete[] keys;
   if (cats.length()) {
@@ -936,7 +936,7 @@ bool assignserverfavourites() {
           }
         }
       }
-      k = strtok_r(NULL, sep, &b);
+      k = strtok_r(nullptr, sep, &b);
     }
     delete[] keys;
   }
@@ -947,7 +947,7 @@ bool assignserverfavourites() {
 COMMAND(addfavcategory, "s");
 COMMAND(listfavcats, "");
 
-static serverinfo *lastselectedserver = NULL;
+static serverinfo *lastselectedserver = nullptr;
 static bool pinglastselected = false;
 
 void refreshservers(void *menu, bool init) {
@@ -956,9 +956,9 @@ void refreshservers(void *menu, bool init) {
   static string title;
   bool issearch = menu == searchmenu;
   bool isinfo = menu == serverinfomenu;
-  bool isscoreboard = menu == NULL;
+  bool isscoreboard = menu == nullptr;
 
-  serverinfo *curserver = getconnectedserverinfo(), *oldsel = NULL;
+  serverinfo *curserver = getconnectedserverinfo(), *oldsel = nullptr;
   if (init) {
     loopi(PINGBUFSIZE) if (pingbuf[i] < totalmillis) pingbuf[i] = 0;
     if (resolverthreads.empty())
@@ -980,7 +980,7 @@ void refreshservers(void *menu, bool init) {
         found = true;
         break;
       }
-      if (!found) lastselectedserver = NULL;
+      if (!found) lastselectedserver = nullptr;
     }
     menureset(menu);
     static string infotext;
@@ -993,7 +993,7 @@ void refreshservers(void *menu, bool init) {
       if (si.infotexts.length() && !pinglastselected) {
         infotext[0] = '\0';
         loopv(si.infotexts)
-            menuimagemanual(menu, NULL, "bargraphs", si.infotexts[i]);
+            menuimagemanual(menu, nullptr, "bargraphs", si.infotexts[i]);
       } else {
         copystring(infotext, "-- waiting for server response --");
         if (si.getinfo == EXTPING_NOP) si.getinfo = EXTPING_SERVERINFO;
@@ -1012,10 +1012,10 @@ void refreshservers(void *menu, bool init) {
               (maxservpings ? max(1, (servers.length() + maxservpings - 1) /
                                          maxservpings)
                             : 1))
-    pingservers(issearch, isscoreboard ? curserver : NULL);
+    pingservers(issearch, isscoreboard ? curserver : nullptr);
   if (!init && menu)  // && servers.inrange(((gmenu *)menu)->menusel))
   {
-    serverinfo *foundserver = NULL;
+    serverinfo *foundserver = nullptr;
     loopv(servers) if (servers[i]->menuline_from == ((gmenu *)menu)->menusel &&
                        servers[i]->menuline_to > servers[i]->menuline_from) {
       foundserver = servers[i];
@@ -1035,7 +1035,7 @@ void refreshservers(void *menu, bool init) {
   if (menu) {
     bool showmr = showminremain || serversort == SBS_MINREM;
     menureset(menu);
-    menuheader(menu, NULL, NULL);
+    menuheader(menu, nullptr, nullptr);
     string text;
     int curnl = 0;
     int allplayers = 0;
@@ -1059,7 +1059,7 @@ void refreshservers(void *menu, bool init) {
           serverfull
               ? '2'
               : (needspasswd ? '3' : (mmode != MM_OPEN ? '1' : basecolor));
-      const char *favimage = NULL;
+      const char *favimage = nullptr;
       if (si.address.host != ENET_HOST_ANY && si.ping != 9999) {
         if (si.protocol != PROTOCOL_VERSION) {
           if (!showonlygoodservers)
@@ -1140,7 +1140,7 @@ void refreshservers(void *menu, bool init) {
              si.playernames.length()) ||
             issearch) {
           int cur = 0;
-          char *t = NULL;
+          char *t = nullptr;
           loopvj(si.playernames) {
             if (cur == 0) {
               if (namelists.length() < ++curnl) namelists.add(newstringbuf());
@@ -1153,11 +1153,11 @@ void refreshservers(void *menu, bool init) {
                 si.playernames[j]);
             cur++;
             if (cur == 4) {
-              menuitemmanual(menu, t, NULL, NULL, NULL);
+              menuitemmanual(menu, t, nullptr, nullptr, nullptr);
               cur = 0;
             }
           }
-          if (cur) menuitemmanual(menu, t, NULL, NULL, NULL);
+          if (cur) menuitemmanual(menu, t, nullptr, nullptr, nullptr);
         }
       }
       si.menuline_to = ((gmenu *)menu)->items.length();
@@ -1201,11 +1201,11 @@ void refreshservers(void *menu, bool init) {
           getalias(favcatargname(favcats[showonlyfavourites - 1], FC_DESC));
       formatstring(headermsg)("Servers in category \f2%s",
                               desc ? desc : favcattags[showonlyfavourites - 1]);
-      menuheader(menu, headermsg, NULL);
+      menuheader(menu, headermsg, nullptr);
       if (!((gmenu *)menu)->items.length() && !issearch)
         formatstring(notfoundmsg)("\t(no servers in this category)");
     }
-    if (*notfoundmsg) menuitemmanual(menu, notfoundmsg, NULL, NULL, NULL);
+    if (*notfoundmsg) menuitemmanual(menu, notfoundmsg, nullptr, nullptr, nullptr);
   }
 }
 
@@ -1382,7 +1382,7 @@ void retrieveservers(vector<char> &data) {
       show_out_of_renderloop_progress(0, progresstext);
       int got = h.get(url, RETRIEVELIMIT, RETRIEVELIMIT);
       if (got < 0 || h.response != 200) data.setsize(0);
-      h.outvec = NULL;  // must not be cleaned up by httpget
+      h.outvec = nullptr;  // must not be cleaned up by httpget
       if (data.length()) data.add('\0');
       clfail = false;
     } else {
@@ -1411,7 +1411,7 @@ void retrieveservers(vector<char> &data) {
       if (enet_socket_wait(sock, &events, 250) >= 0 && events) {
         buf.data = (void *)req;
         buf.dataLength = reqlen;
-        int sent = enet_socket_send(sock, NULL, &buf, 1);
+        int sent = enet_socket_send(sock, nullptr, &buf, 1);
         if (sent < 0) break;
         req += sent;
         reqlen -= sent;
@@ -1430,7 +1430,7 @@ void retrieveservers(vector<char> &data) {
           if (data.length() >= data.capacity()) data.reserve(4096);
           buf.data = data.getbuf() + data.length();
           buf.dataLength = data.capacity() - data.length();
-          int recv = enet_socket_receive(sock, NULL, &buf, 1);
+          int recv = enet_socket_receive(sock, nullptr, &buf, 1);
           if (recv <= 0) break;
           data.advance(recv);
         }

@@ -213,7 +213,7 @@ ucharbuf *getgzbuf(
   if (sizegz == 0) sizegz = size;  // uncompressed was smaller
   if (sizegz > 0 && p.remaining() >= sizegz && sizegz <= MAXGZMSGSIZE &&
       size >= 0 && size <= MAXGZMSGSIZE) {
-    uchar *data = new uchar[size + 1];
+    auto *data = new uchar[size + 1];
     uLongf rawsize = size;
     if (data) {
       if (size == sizegz) {
@@ -222,14 +222,14 @@ ucharbuf *getgzbuf(
                  rawsize - size != 0) {
         p.forceoverread();
         delete[] data;
-        return NULL;
+        return nullptr;
       }
       p.len += sizegz;
       return new ucharbuf(data, size);
     }
   }
   p.forceoverread();
-  return NULL;
+  return nullptr;
 }
 
 void freegzbuf(ucharbuf *p)  // free a ucharbuf created by getgzbuf()
@@ -286,7 +286,7 @@ char *filtertext(char *dst, const char *src, int flags, int len) {
 #endif
   bool trans = toupp || tolow || leet || filename || fillblanks;
   bool leadingwhite = cropwhite;
-  char *lastwhite = NULL;
+  char *lastwhite = nullptr;
   bool insidepointybrackets = false;
   for (int c = *src; c; c = *++src) {
     c &= 0x7F;  // 7-bit ascii. not negotiable.
@@ -347,7 +347,7 @@ char *filtertext(char *dst, const char *src, int flags, int len) {
         continue;
       if (!lastwhite) lastwhite = dst;
     } else {
-      lastwhite = NULL;
+      lastwhite = nullptr;
       if (!pass && !isprint(c)) continue;
     }
     leadingwhite = false;

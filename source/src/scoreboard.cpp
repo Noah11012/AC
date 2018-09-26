@@ -3,7 +3,7 @@
 #include "cube.h"
 #define SCORERATIO(F, D) (float)(F >= 0 ? F : 0) / (float)(D > 0 ? D : 1)
 
-void *scoremenu = NULL;
+void *scoremenu = nullptr;
 bool needscoresreorder = true;
 
 void showscores(bool on) {
@@ -25,10 +25,10 @@ VARFP(sc_clientnum, 0, 6, 100, needscoresreorder = true);
 VARFP(sc_name, 0, 7, 100, needscoresreorder = true);
 
 struct coldata {
-  int priority;
-  char *val;
+  int priority{-1};
+  char *val{NULL};
 
-  coldata() : priority(-1), val(NULL) {}
+  coldata()  {}
   ~coldata() { DELETEA(val); }
 };
 
@@ -44,13 +44,13 @@ int sortcolumns(coldata *col_a, coldata *col_b) {
 
 struct sline {
   string s;
-  color *bgcolor;
-  char textcolor;
+  color *bgcolor{NULL};
+  char textcolor{0};
   vector<coldata> cols;
 
-  sline() : bgcolor(NULL), textcolor(0) { copystring(s, ""); }
+  sline()  { copystring(s, ""); }
 
-  void addcol(int priority, const char *format = NULL, ...) PRINTFARGS(3, 4) {
+  void addcol(int priority, const char *format = nullptr, ...) PRINTFARGS(3, 4) {
     if (priority < 0) return;
     coldata &col = cols.add();
     col.priority = priority;
@@ -176,7 +176,7 @@ void renderdiscscores(int team) {
     line.addcol(sc_frags, "%d", d.frags);
     line.addcol(sc_deaths, "%d", d.deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(d.frags, d.deaths));
-    if (multiplayer(NULL) || watchingdemo)
+    if (multiplayer(nullptr) || watchingdemo)
       line.addcol(sc_score, "%d", max(d.points, 0));
     line.addcol(sc_lag, "%s", clag);
     line.addcol(sc_clientnum, "DISC");
@@ -199,7 +199,7 @@ void renderscore(playerent *d) {
   else if (d->state == CS_LAGGED || (d->ping > 999 && d->plag > 99))
     copystring(lagping, "LAG");
   else {
-    if (multiplayer(NULL))
+    if (multiplayer(nullptr))
       formatstring(lagping)("%s/%s", colorpj(d->plag), colorping(d->ping));
     else
       formatstring(lagping)("%d/%d", d->plag, d->ping);
@@ -207,13 +207,13 @@ void renderscore(playerent *d) {
   const char *ign = d->ignored ? " (ignored)" : (d->muted ? " (muted)" : "");
   sline &line = scorelines.add();
   if (team_isspect(d->team)) line.textcolor = '4';
-  line.bgcolor = d == player1 ? &localplayerc : NULL;
+  line.bgcolor = d == player1 ? &localplayerc : nullptr;
 
   if (m_flags) line.addcol(sc_flags, "%d", d->flagscore);
   line.addcol(sc_frags, "%d", d->frags);
   line.addcol(sc_deaths, "%d", d->deaths);
   line.addcol(sc_ratio, "%.2f", SCORERATIO(d->frags, d->deaths));
-  if (multiplayer(NULL) || watchingdemo) {
+  if (multiplayer(nullptr) || watchingdemo) {
     line.addcol(sc_score, "%d", max(d->points, 0));
     line.addcol(sc_lag, "%s", lagping);
   }
@@ -244,7 +244,7 @@ void renderteamscore(teamscore *t) {
   line.addcol(sc_frags, "%d", t->frags);
   line.addcol(sc_deaths, "%d", t->deaths);
   line.addcol(sc_ratio, "%.2f", SCORERATIO(t->frags, t->deaths));
-  if (multiplayer(NULL) || watchingdemo) {
+  if (multiplayer(nullptr) || watchingdemo) {
     line.addcol(sc_score, "%d", max(t->points, 0));
     line.addcol(sc_lag);
   }
@@ -270,7 +270,7 @@ void reorderscorecolumns() {
   sscore.addcol(sc_frags, "frags");
   sscore.addcol(sc_deaths, "deaths");
   sscore.addcol(sc_ratio, "ratio");
-  if (multiplayer(NULL) || watchingdemo) {
+  if (multiplayer(nullptr) || watchingdemo) {
     sscore.addcol(sc_score, "score");
     sscore.addcol(sc_lag, "pj/ping");
   }
@@ -361,7 +361,7 @@ void renderscores(void *menu, bool init) {
   extern string gtime;
 
   if ((gamemode > 1 ||
-       (gamemode == 0 && (multiplayer(NULL) || watchingdemo))) &&
+       (gamemode == 0 && (multiplayer(nullptr) || watchingdemo))) &&
       minutesremaining >= 0) {
     if (!minutesremaining) {
       concatstring(modeline, ", intermission");
@@ -396,7 +396,7 @@ void renderscores(void *menu, bool init) {
     }
   }
 
-  if (multiplayer(NULL)) {
+  if (multiplayer(nullptr)) {
     serverinfo *s = getconnectedserverinfo();
     if (s) {
       if (servstate.mastermode > MM_OPEN) {
@@ -423,14 +423,14 @@ void renderscores(void *menu, bool init) {
 
   menureset(menu);
   loopv(scorelines)
-      menuimagemanual(menu, NULL, "radaricons", scorelines[i].getcols(), NULL,
+      menuimagemanual(menu, nullptr, "radaricons", scorelines[i].getcols(), nullptr,
                       scorelines[i].bgcolor);
   menuheader(menu, modeline, serverline);
 
   // update server stats
   static int lastrefresh = 0;
   if (!lastrefresh || lastrefresh + 5000 < lastmillis) {
-    refreshservers(NULL, init);
+    refreshservers(nullptr, init);
     lastrefresh = lastmillis;
   }
 }
@@ -443,7 +443,7 @@ static void addstr(char *&dest, const char *end, const char *src) {
 }
 
 const char *asciiscores(bool destjpg) {
-  static char *buf = NULL;
+  static char *buf = nullptr;
   static string team, flags, text;
   playerent *d;
   vector<playerent *> scores;
@@ -464,11 +464,11 @@ const char *asciiscores(bool destjpg) {
     addstr(t, e, text);
   }
   if (getclientmap()[0]) {
-    formatstring(text)("\n\"%s\" on map %s", modestr(gamemode, 0),
+    formatstring(text)("\n\"%s\" on map %s", modestr(gamemode, false),
                        getclientmap());
     addstr(t, e, text);
   }
-  if (multiplayer(NULL)) {
+  if (multiplayer(nullptr)) {
     serverinfo *s = getconnectedserverinfo();
     if (s) {
       string sdesc;

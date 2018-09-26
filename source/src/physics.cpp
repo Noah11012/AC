@@ -18,7 +18,7 @@ float raycube(const vec &o, const vec &ray, vec &surface) {
   for (nr = 0; nr < 512;
        nr++)  // sam's suggestion :: I found no map which got nr > 350
   {
-    int x = int(v.x), y = int(v.y);
+    auto x = int(v.x), y = int(v.y);
     if (x < 0 || y < 0 || x >= ssize || y >= ssize) return -1;
     sqr *s = S(x, y);
     float floor = s->floor, ceil = s->ceil;
@@ -75,7 +75,7 @@ bool raycubelos(const vec &from, const vec &to, float margin) {
   return dist > max(limit - margin, 0.0f);
 }
 
-physent *hitplayer = NULL;
+physent *hitplayer = nullptr;
 
 bool plcollide(physent *d, physent *o, float &headspace, float &hi,
                float &lo)  // collide with physent
@@ -225,7 +225,7 @@ bool mmcollide(physent *d, float &hi, float &lo)  // collide with a mapmodel
       if (!mmi || !mmi->h) continue;
       const float r = mmi->rad + d->radius;
       if (fabs(e.x - d->o.x) < r && fabs(e.y - d->o.y) < r) {
-        const float mmz =
+        const auto mmz =
             float(S(e.x, e.y)->floor + mmi->zoff + float(e.attr3) / ENTSCALE5);
         const float dz = d->o.z - eyeheight;
         if (dz < mmz - 0.42) {
@@ -265,10 +265,10 @@ bool collide(physent *d, bool spawn, float drop, float rise) {
   const float fy1 = d->o.y - d->radius;
   const float fx2 = d->o.x + d->radius;
   const float fy2 = d->o.y + d->radius;
-  const int x1 = int(fx1);
-  const int y1 = int(fy1);
-  const int x2 = int(fx2);
-  const int y2 = int(fy2);
+  const auto x1 = int(fx1);
+  const auto y1 = int(fy1);
+  const auto x2 = int(fx2);
+  const auto y2 = int(fy2);
   float hi = 127, lo = -128;
   const float eyeheight = d->eyeheight;
   const float playerheight = eyeheight + d->aboveeye;
@@ -293,7 +293,7 @@ bool collide(physent *d, bool spawn, float drop, float rise) {
           return true;
 
         case CORNER: {
-          sqr *ns, *h = NULL;
+          sqr *ns, *h = nullptr;
           int bx, by, bs;
           int q = cornertest(x, y, bx, by, bs, ns, h);
           bool matter = false, match = false;
@@ -474,7 +474,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime) {
   float drop = 0, rise = 0;
 
   if (pl->type == ENT_BOUNCE) {
-    bounceent *bounce = (bounceent *)pl;
+    auto *bounce = (bounceent *)pl;
     water = waterlevel > pl->o.z;
 
     const float speed = curtime * pl->maxspeed / (water ? 2000.0f : 1000.0f);
@@ -658,7 +658,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime) {
           pl->o.z);  // force capping the o-values to float-representables
                      // (avoid player stuck conditions on 32-bit g++ builds)
       pl->o = vec(gcco3.x, gcco3.y, gcco3.z);
-      hitplayer = NULL;
+      hitplayer = nullptr;
       bool spect3rd = player1->spectatemode > SM_FOLLOW1ST &&
                       player1->spectatemode <= SM_FOLLOW3RD_TRANSPARENT;
       if ((pl->type == ENT_CAMERA && pl == camera1 && spect3rd) ||
@@ -804,7 +804,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime) {
   if (pl->type != ENT_BOUNCE) {
     if (pl->type == ENT_PLAYER) {
       // automatically apply smooth roll when strafing
-      playerent *p = (playerent *)pl;
+      auto *p = (playerent *)pl;
       float iir = 1.0f + sqrtf((float)curtime) / 25.0f;
       if (pl->strafe == 0) {
         p->movroll /= iir;
@@ -884,7 +884,7 @@ void physicsframe()  // optimally schedule physics frames inside the graphics
     physframetime = clamp((PHYSFRAMETIME * gamespeed) / 100, 1, PHYSFRAMETIME);
     physsteps = (diff + physframetime - 1) / physframetime;
     lastphysframe += physsteps * physframetime;
-    if (!multiplayer(NULL) && physsteps > 1000) physsteps = 1000;
+    if (!multiplayer(nullptr) && physsteps > 1000) physsteps = 1000;
   }
 }
 

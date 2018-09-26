@@ -52,7 +52,7 @@ void quit()  // normal exit
   writemapmodelattributes();
   entropy_save();
   writeallxmaps();
-  cleanup(NULL);
+  cleanup(nullptr);
   popscontext();
   DELETEP(clientlogfile);
   exit(EXIT_SUCCESS);
@@ -77,7 +77,7 @@ void fatal(const char *s, ...)  // failure exit
   exit(EXIT_FAILURE);
 }
 
-SDL_Surface *screen = NULL;
+SDL_Surface *screen = nullptr;
 
 static int initing = NOT_INITING;
 static bool restoredinits = false;
@@ -171,7 +171,7 @@ void setprocesspriority(bool high)
 
 VARP(pngcompress, 0, 9, 9);
 
-void writepngchunk(stream *f, const char *type, const void *data = NULL,
+void writepngchunk(stream *f, const char *type, const void *data = nullptr,
                    uint len = 0) {
   f->putbig<uint>(len);
   f->write(type, 4);
@@ -184,7 +184,7 @@ void writepngchunk(stream *f, const char *type, const void *data = NULL,
 }
 
 int save_png(const char *filename, SDL_Surface *image) {
-  uchar *data = (uchar *)image->pixels;
+  auto *data = (uchar *)image->pixels;
   int iw = image->w, ih = image->h, pitch = image->pitch;
 
   stream *f = openfile(filename, "wb");
@@ -210,9 +210,9 @@ int save_png(const char *filename, SDL_Surface *image) {
   crc = crc32(crc, (const Bytef *)"IDAT", 4);
 
   z_stream z;
-  z.zalloc = NULL;
-  z.zfree = NULL;
-  z.opaque = NULL;
+  z.zalloc = nullptr;
+  z.zfree = nullptr;
+  z.opaque = nullptr;
 
   if (deflateInit(&z, pngcompress) != Z_OK) goto error;
 
@@ -320,7 +320,7 @@ void mapscreenshot(const char *imagepath, bool mapshot, int fileformat,
   } else {
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     if (src_w != dst_w || src_h != dst_h) {  // scale image
-      uchar *tmpsrc = new uchar[src_w * src_h * 3];
+      auto *tmpsrc = new uchar[src_w * src_h * 3];
       glReadPixels(0, 0, src_w, src_h, GL_RGB, GL_UNSIGNED_BYTE, tmpsrc);
       scaletexture(tmpsrc, src_w, src_h, 3, tmpdst, dst_w, dst_h);
       delete[] tmpsrc;
@@ -837,7 +837,7 @@ VIRTW = scr_w * VIRTH / scr_h;
 #define AUTOSTARTPATH "config" PATHDIVS "autostart" PATHDIVS
 
   void autostartscripts(const char *prefix) {
-    static vector<char *> *files = NULL;
+    static vector<char *> *files = nullptr;
     if (!files) {  // first run: fetch file names and sort them
       files = new vector<char *>;
       listfiles(AUTOSTARTPATH, "cfg", *files, stringsort);
@@ -899,7 +899,7 @@ VIRTW = scr_w * VIRTH / scr_h;
       clientlogf(" ignoring fragment part of url (%s)", u.fragment);
     if (*u.path) clientlogf(" ignoring path part of url (%s)", u.path);
     int port = ATOI(u.port);
-    const char *q = u.query, *passwd = NULL;
+    const char *q = u.query, *passwd = nullptr;
     while (q && *q) {
       if (*q == '&') q++;
       if (!strncmp(q, "port=", 5)) {
@@ -993,8 +993,8 @@ VIRTW = scr_w * VIRTH / scr_h;
 
       bool dedicated = false;
       bool quitdirectly = false;
-      char *initscript = NULL;
-      char *initdemo = NULL;
+      char *initscript = nullptr;
+      char *initdemo = nullptr;
 
       if (bootclientlog)
         cvecprintf(*bootclientlog, "######## start logging: %s\n",
@@ -1093,7 +1093,7 @@ VIRTW = scr_w * VIRTH / scr_h;
         }
       }
       if (!havehomedir()) sethomedir(DEFAULTPROFILEPATH);
-      entropy_init(time(NULL) + (uint)(size_t)&initscript +
+      entropy_init(time(nullptr) + (uint)(size_t)&initscript +
                    (uint)(size_t)entropy_init);
       initclientlog();
       if (quitdirectly) return EXIT_SUCCESS;
@@ -1197,20 +1197,20 @@ VIRTW = scr_w * VIRTH / scr_h;
           *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu,
           *applymenu, *downloaddemomenu;
       scoremenu =
-          addmenu("score", "columns", false, renderscores, NULL, false, true);
-      servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
-      searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
+          addmenu("score", "columns", false, renderscores, nullptr, false, true);
+      servmenu = addmenu("server", nullptr, true, refreshservers, serverskey);
+      searchmenu = addmenu("search", nullptr, true, refreshservers, serverskey);
       serverinfomenu =
           addmenu("serverinfo", "extended server information (F5: refresh)",
                   true, refreshservers, serverinfokey);
-      kickmenu = addmenu("kick player", NULL, true, refreshsopmenu);
-      banmenu = addmenu("ban player", NULL, true, refreshsopmenu);
-      forceteammenu = addmenu("force team", NULL, true, refreshsopmenu);
-      giveadminmenu = addmenu("give admin", NULL, true, refreshsopmenu);
-      docmenu = addmenu("reference", NULL, true, renderdocmenu);
+      kickmenu = addmenu("kick player", nullptr, true, refreshsopmenu);
+      banmenu = addmenu("ban player", nullptr, true, refreshsopmenu);
+      forceteammenu = addmenu("force team", nullptr, true, refreshsopmenu);
+      giveadminmenu = addmenu("give admin", nullptr, true, refreshsopmenu);
+      docmenu = addmenu("reference", nullptr, true, renderdocmenu);
       applymenu =
           addmenu("apply", "apply changes now?", true, refreshapplymenu);
-      downloaddemomenu = addmenu("Download demo", NULL, true);
+      downloaddemomenu = addmenu("Download demo", nullptr, true);
 
       exec("config/scontext.cfg");
       exec("config/keymap.cfg");
@@ -1312,7 +1312,7 @@ VIRTW = scr_w * VIRTH / scr_h;
         limitfps(millis, totalmillis);
         int elapsed = millis - totalmillis;
         entropy_add_byte(elapsed);
-        if (multiplayer(NULL))
+        if (multiplayer(nullptr))
           curtime = elapsed;
         else {
           static int timeerr = 0;

@@ -2,8 +2,8 @@
 
 #include "cube.h"
 
-static GLushort *hemiindices = NULL;
-static vec *hemiverts = NULL;
+static GLushort *hemiindices = nullptr;
+static vec *hemiverts = nullptr;
 static int heminumverts = 0, heminumindices = 0;
 
 static void subdivide(int depth, int face);
@@ -72,7 +72,7 @@ GLuint createexpmodtex(int size, float minval) {
 static struct expvert {
   vec pos;
   float u, v, s, t;
-} *expverts = NULL;
+} *expverts = nullptr;
 
 static GLuint expmodtex[2] = {0, 0};
 static GLuint lastexpmodtex = 0;
@@ -180,12 +180,12 @@ struct particle {
   int millis;
   particle *next;
 };
-particle *parlist[MAXPARTYPES], *parempty = NULL;
+particle *parlist[MAXPARTYPES], *parempty = nullptr;
 
 static Texture *parttex[7];
 
 void particleinit() {
-  loopi(MAXPARTYPES) parlist[i] = NULL;
+  loopi(MAXPARTYPES) parlist[i] = nullptr;
 
   parttex[0] = textureload("packages/misc/base.png");
   parttex[1] = textureload("packages/misc/smoke.png");
@@ -218,7 +218,7 @@ void newparticle(const vec &o, const vec &d, int fade, int type) {
   if (OUTBORD((int)o.x, (int)o.y)) return;
 
   if (!parempty) {
-    particle *ps = new particle[256];
+    auto *ps = new particle[256];
     loopi(256) {
       ps[i].next = parempty;
       parempty = &ps[i];
@@ -754,7 +754,7 @@ void addshotline(dynent *pl, const vec &from, const vec &to) {
   if (pl == player1 || !shotlinettl || !shotline) return;
   bool fx = shotlinettl > 0 &&
             (player1->isspectating() ||
-             !multiplayer(NULL));  // allow fx only in spect mode and locally
+             !multiplayer(nullptr));  // allow fx only in spect mode and locally
   if (rnd(3) && !fx) return;       // show all shotlines when fx enabled
 
   int start = (camera1->o.dist(to) <= 10.0f) ? 8 : 5;

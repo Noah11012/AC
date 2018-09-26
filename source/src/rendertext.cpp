@@ -5,9 +5,9 @@
 int VIRTW;
 bool ignoreblinkingbit = false;  // for remote-n-temp override of '\fb'
 static hashtable<const char *, font> fonts;
-static font *fontdef = NULL;
+static font *fontdef = nullptr;
 
-font *curfont = NULL;
+font *curfont = nullptr;
 
 VARP(allowblinkingtext, 0, 0, 1);  // if you're so inclined
 
@@ -132,7 +132,7 @@ void render_igraphs() {
   int last = 0,
       w[2] = {(FONTH * igraphsize) / 100, (FONTH * igraphsizehardcoded) / 100},
       offs[2] = {(FONTH - w[0]) / 2, (FONTH - w[1]) / 2}, ishc = 0;
-  igraph *ig = NULL;
+  igraph *ig = nullptr;
   glColor4ub(255, 255, 255, 255);
   loopv(igraphbatch) {
     if (last != igraphbatch[i].key)
@@ -298,13 +298,13 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color,
         color = bvec(250, 100, 100);
         break;  // stats: red
     }
-    int b = (int)(sinf(lastmillis / 200.0f) * 115.0f);
+    auto b = (int)(sinf(lastmillis / 200.0f) * 115.0f);
     b = stack[sp] > 0 ? 100 : min(iabs(b), 100);
     glColor4ub(color.x, color.y, color.z, (a * b) / 100);
   }
 }
 
-static vector<int> *columns = NULL;
+static vector<int> *columns = nullptr;
 
 void text_startcolumns() {
   if (!columns) columns = new vector<int>;
@@ -611,7 +611,7 @@ void addigraph(char *fname) {
       ig.used = !mnem[1] && *mnem >= '1' && *mnem <= '9' ? *mnem - '0' : 0;
       if (ig.used && usedigraphs.inrange(ig.used))
         usedigraphs[ig.used] = &ig;  // hardcode "1".."9"
-      while ((r = strtok_r(NULL, "_", &b))) ig.frames.add(max(5, (int)ATOI(r)));
+      while ((r = strtok_r(nullptr, "_", &b))) ig.frames.add(max(5, (int)ATOI(r)));
       if (ig.frames.empty()) ig.frames.add(igraphdefaultframetime);
       while (ig.frames.length() < tex->xs / tex->ys)
         ig.frames.add(ig.frames.last());
@@ -645,7 +645,7 @@ COMMAND(updateigraphs, "");
 
 igraph *getusedigraph(int i) {
   if (usedigraphs.inrange(i)) return usedigraphs[i];
-  return NULL;
+  return nullptr;
 }
 
 int getigraph(const char *mnem) {

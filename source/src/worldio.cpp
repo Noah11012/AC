@@ -62,10 +62,10 @@ void writemap(char *name, int msize, uchar *mdata) {
 
 uchar *readmap(char *name, int *size, int *revision) {
   setnames(name);
-  uchar *data = (uchar *)loadfile(cgzname, size);
+  auto *data = (uchar *)loadfile(cgzname, size);
   if (!data) {
     conoutf("\f3could not read map %s", cgzname);
-    return NULL;
+    return nullptr;
   }
   mapstats *ms = loadmapstats(cgzname, false);
   if (revision) *revision = ms->hdr.maprevision;
@@ -76,7 +76,7 @@ void writecfggz(char *name, int size, int sizegz, uchar *data) {
   if (size < 1 || !sizegz || size > MAXCFGFILESIZE) return;
   setnames(name);
 
-  uchar *rawcfg = new uchar[size];
+  auto *rawcfg = new uchar[size];
   uLongf rawsize = size;
   if (rawcfg && uncompress(rawcfg, &rawsize, data, sizegz) == Z_OK &&
       rawsize - size == 0) {
@@ -96,8 +96,8 @@ void writecfggz(char *name, int size, int sizegz, uchar *data) {
 
 uchar *readmcfggz(char *name, int *size, int *sizegz) {
   setnames(name);
-  uchar *gzbuf = new uchar[GZBUFSIZE];
-  uchar *data = (uchar *)loadfile(mcfname, size, "r");
+  auto *gzbuf = new uchar[GZBUFSIZE];
+  auto *data = (uchar *)loadfile(mcfname, size, "r");
   if (data && *size < MAXCFGFILESIZE) {
     uLongf gzbufsize = GZBUFSIZE;
     if (compress2(gzbuf, &gzbufsize, data, *size, 9) != Z_OK) {
@@ -122,7 +122,7 @@ void rlencodecubes(vector<uchar> &f, sqr *s, int len,
                    bool preservesolids)  // run-length encoding and
                                          // serialisation of a series of cubes
 {
-  sqr *t = NULL;
+  sqr *t = nullptr;
   int sc = 0;
 #define spurge      \
   while (sc) {      \
@@ -179,7 +179,7 @@ bool rldecodecubes(ucharbuf &f, sqr *s, int len, int version,
                    bool silent)  // run-length decoding of a series of cubes
                                  // (version is only relevant, if < 6)
 {
-  sqr *t = NULL, *e = s + len;
+  sqr *t = nullptr, *e = s + len;
   while (s < e) {
     int type = f.overread() ? -1 : f.get();
     switch (type) {
@@ -264,10 +264,10 @@ bool rldecodecubes(ucharbuf &f, sqr *s, int len, int version,
 // types to avoid further format version bumps
 
 struct headerextra {
-  int len, flags;
-  uchar *data;
-  headerextra() : len(0), flags(0), data(NULL) {}
-  headerextra(int l, int f, uchar *d) : len(l), flags(f), data(NULL) {
+  int len{0}, flags{0};
+  uchar *data{NULL};
+  headerextra()  {}
+  headerextra(int l, int f, uchar *d) : len(l), flags(f), data(nullptr) {
     if (d) {
       data = new uchar[len];
       memcpy(data, d, len);
@@ -318,7 +318,7 @@ void unpackheaderextra(
 {
   ucharbuf p(buf, len);
   DEBUG("unpacking " << len << " bytes");
-  while (1) {
+  while (true) {
     int len = getuint(p), flags = getuint(p);
     if (p.overread() || len > p.remaining()) break;
     DEBUGCODE(clientlogf(
@@ -415,17 +415,17 @@ bool embedconfigfile() {
   }
   setnames(getclientmap());
   int len;
-  uchar *buf = (uchar *)loadfile(mcfname, &len);
+  auto *buf = (uchar *)loadfile(mcfname, &len);
   if (buf) {
     for (int n; (n = findheaderextra(HX_CONFIG)) >= 0;) deleteheaderextra(n);
     headerextras
-        .add(new headerextra(len + 1, HX_CONFIG | HX_FLAG_PERSIST, NULL))
+        .add(new headerextra(len + 1, HX_CONFIG | HX_FLAG_PERSIST, nullptr))
         ->data = buf;
     backup(mcfname, cbakname);  // don't delete the config file, just rename
     conoutf("embedded map config file \"%s\"", mcfname);
   } else
     conoutf("\f3failed to load config file %s", mcfname);
-  return buf != NULL;
+  return buf != nullptr;
 }
 COMMANDF(embedconfigfile, "", () {
   if (embedconfigfile()) save_world(getclientmap());
@@ -730,10 +730,10 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort) {
       deleteheaderextra(n);  // delete existing embedded config
     vector<char> ec;
     getcurrentmapconfig(ec, false);
-    uchar *ecu = new uchar[ec.length()];
+    auto *ecu = new uchar[ec.length()];
     memcpy(ecu, ec.getbuf(), ec.length());
     headerextras
-        .add(new headerextra(ec.length(), HX_CONFIG | HX_FLAG_PERSIST, NULL))
+        .add(new headerextra(ec.length(), HX_CONFIG | HX_FLAG_PERSIST, nullptr))
         ->data = ecu;
   }
 
@@ -742,7 +742,7 @@ void save_world(char *mname, bool skipoptimise, bool addcomfort) {
                                  // AssaultCube map, even if imported as CUBE
   hdr.version = MAPVERSION;
   hdr.headersize = sizeof(header);
-  hdr.timestamp = (int)time(NULL);
+  hdr.timestamp = (int)time(nullptr);
   rebuildtexlists();
 
   // create sorted entity list
@@ -883,7 +883,7 @@ void save_world9(char *mname) {
                                  // AssaultCube map, even if imported as CUBE
   hdr.version = 9;
   hdr.headersize = sizeof(header);
-  hdr.timestamp = (int)time(NULL);  // non-zero timestamps in format 9 can be
+  hdr.timestamp = (int)time(nullptr);  // non-zero timestamps in format 9 can be
                                     // used to identify "exported" maps
   hdr.numents = 0;
   loopv(ents) if (ents[i].type != NOTUSED && ents[i].type != DUMMYENT)
@@ -1039,7 +1039,7 @@ int load_world(char *mname)  // still supports all map formats that have existed
       extrasize = MAXHEADEREXTRA;
     if (extrasize) {  // map file actually has extra header data that we want
                       // too preserve
-      uchar *extrabuf = new uchar[extrasize];
+      auto *extrabuf = new uchar[extrasize];
       if (f->read(extrabuf, extrasize) != extrasize) {
         conoutf("\f3while reading map: header malformatted (3)");
         delete f;
@@ -1075,7 +1075,7 @@ int load_world(char *mname)  // still supports all map formats that have existed
 
   // read and convert all entities
   cleartodoentities();
-  persistent_entity *tempents = new persistent_entity[hdr.numents];
+  auto *tempents = new persistent_entity[hdr.numents];
   bool oldentityformat =
       hdr.version < 10;  // version < 10 have only 4 attributes and no scaling
   loopi(hdr.numents) {
@@ -1296,18 +1296,18 @@ COMMANDF(loadmap, "s", (char *mapname) {
 char *getfiledesc(const char *dir, const char *name,
                   const char *ext)  // extract demo and map descriptions
 {
-  if (!dir || !name || !ext) return NULL;
+  if (!dir || !name || !ext) return nullptr;
   defformatstring(fn)("%s/%s.%s", dir, name, ext);
   path(fn);
   string text, demodescalias;
   if (!strcmp(ext, "dmo")) {
     stream *f = opengzfile(fn, "rb");
-    if (!f) return NULL;
+    if (!f) return nullptr;
     demoheader hdr;
     if (f->read(&hdr, sizeof(demoheader)) != sizeof(demoheader) ||
         memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic))) {
       delete f;
-      return NULL;
+      return nullptr;
     }
     delete f;
     lilswap(&hdr.version, 1);
@@ -1332,12 +1332,12 @@ char *getfiledesc(const char *dir, const char *name,
     return newstring(text);
   } else if (!strcmp(ext, "cgz")) {
     stream *f = opengzfile(fn, "rb");
-    if (!f) return NULL;
+    if (!f) return nullptr;
     header hdr;
     if (f->read(&hdr, sizeof(header)) != sizeof(header) ||
         (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP", 4))) {
       delete f;
-      return NULL;
+      return nullptr;
     }
     delete f;
     lilswap(&hdr.version, 1);
@@ -1348,7 +1348,7 @@ char *getfiledesc(const char *dir, const char *name,
     text[DHDR_DESCCHARS - 1] = '\0';
     return newstring(text);
   }
-  return NULL;
+  return nullptr;
 }
 
 void enumfiles(char *dir, char *ext) {
@@ -1357,7 +1357,7 @@ void enumfiles(char *dir, char *ext) {
   if (!strcasecmp(ext, "dir"))
     listsubdirs(dir, files, stringsort);
   else
-    listfiles(dir, *ext ? ext : NULL, files, stringsort);
+    listfiles(dir, *ext ? ext : nullptr, files, stringsort);
   loopv(files) cvecprintf(res, "%s\n", escapestring(files[i]));
   files.deletearrays();
   resultcharvector(res, -1);
@@ -1374,7 +1374,7 @@ void hexbinwrite(stream *f, void *data, int len,
                                      // with up to 24 bytes per line
 {
   string asc;
-  uchar *s = (uchar *)data;
+  auto *s = (uchar *)data;
   while (len > 0) {
     int chunk = min(len, 24);
     f->printf("hexbinchunk");
@@ -1423,13 +1423,13 @@ struct xmap {
   vector<char> mapconfig;
   vector<int> todoents;
   vector<char *> todoentdescs;
-  sqr *world;
+  sqr *world{NULL};
   header hdr;
-  int ssize, cubicsize, numundo;
+  int ssize{0}, cubicsize{0}, numundo{0};
   string mcfname;
   short position[5];
 
-  xmap() : world(NULL), ssize(0), cubicsize(0), numundo(0) {
+  xmap()  {
     *nick = *name = *mcfname = '\0';
   }
 
@@ -1528,7 +1528,7 @@ struct xmap {
         gzbufsize =
             (worldsize * 11) /
             10;  // gzip the world, so the file will only be big instead of huge
-    uchar *gzbuf = new uchar[gzbufsize];
+    auto *gzbuf = new uchar[gzbufsize];
     if (compress2(gzbuf, &gzbufsize, (uchar *)world, worldsize, 9) != Z_OK)
       gzbufsize = 0;
     hexbinwrite(f, gzbuf, gzbufsize, false);
@@ -1606,7 +1606,7 @@ const char *xmapdescstring(xmap *xm, bool shortform = false) {
   return s[toggle];
 }
 
-xmap *getxmapbynick(const char *nick, int *index = NULL, bool errmsg = true) {
+xmap *getxmapbynick(const char *nick, int *index = nullptr, bool errmsg = true) {
   if (*nick) loopvrev(xmaps) {
       if (!strcmp(nick, xmaps[i]->nick)) {
         if (index) *index = i;
@@ -1614,7 +1614,7 @@ xmap *getxmapbynick(const char *nick, int *index = NULL, bool errmsg = true) {
       }
     }
   if (errmsg) conoutf("xmap \"%s\" not found", nick);
-  return NULL;
+  return nullptr;
 }
 
 COMMANDF(xmap_list, "",
@@ -1823,7 +1823,7 @@ void restorexmap(char **args,
       else {
         if (xmjigsaw->mapconfig.length()) xmjigsaw->mapconfig.add('\0');
         xmaps.add(xmjigsaw);
-        xmjigsaw = NULL;  // no abort!
+        xmjigsaw = nullptr;  // no abort!
       }
     }
   }

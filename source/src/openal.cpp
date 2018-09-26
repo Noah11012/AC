@@ -10,7 +10,7 @@ VAR(al_rollofffactor, 0, 100, 1000000);
 // represents an OpenAL source, an audio emitter in the 3D world
 
 source::source()
-    : id(0), owner(NULL), locked(false), valid(false), priority(SP_NORMAL) {
+    : id(0), owner(nullptr), locked(false), valid(false), priority(SP_NORMAL) {
   valid = generate();
   ASSERT(!valid || alIsSource(id));
 }
@@ -26,7 +26,7 @@ void source::lock() {
 
 void source::unlock() {
   locked = false;
-  owner = NULL;
+  owner = nullptr;
   stop();
   buffer(0);
   DEBUG("source unlocked, " << lastmillis);
@@ -34,7 +34,7 @@ void source::unlock() {
 
 void source::reset() {
   ASSERT(alIsSource(id));
-  owner = NULL;
+  owner = nullptr;
   locked = false;
   priority = SP_NORMAL;
 
@@ -64,7 +64,7 @@ void source::init(sourceowner *o) {
 void source::onreassign() {
   if (owner) {
     owner->onsourcereassign(this);
-    owner = NULL;
+    owner = nullptr;
   }
 }
 
@@ -151,7 +151,7 @@ vec source::position() {
   ALfloat v[3];
   alGetSourcefv(id, AL_POSITION, v);
   if (ALERR)
-    return vec(0, 0, 0);
+    return {0, 0, 0};
   else
     return vec(v[0], v[1], v[2]);
 }
@@ -217,7 +217,7 @@ void source::printposition() {
 
 // represents an OpenAL sound buffer
 
-sbuffer::sbuffer() : id(0), name(NULL) {}
+sbuffer::sbuffer() : id(0), name(nullptr) {}
 
 sbuffer::~sbuffer() { unload(); }
 
@@ -237,7 +237,7 @@ bool sbuffer::load(bool trydl) {
       size_t len = strlen(filepath);
       if (len >= 4 && !strcasecmp(filepath + len - 4, ".ogg")) {
         OggVorbis_File oggfile;
-        if (!ov_open_callbacks(f, &oggfile, NULL, 0, oggcallbacks)) {
+        if (!ov_open_callbacks(f, &oggfile, nullptr, 0, oggcallbacks)) {
           vorbis_info *info = ov_info(&oggfile, -1);
 
           const size_t BUFSIZE = 32 * 1024;
@@ -320,7 +320,7 @@ void sbuffer::unload() {
 
 // buffer collection, find or load data
 
-bufferhashtable::~bufferhashtable() {}
+bufferhashtable::~bufferhashtable() = default;
 
 sbuffer *bufferhashtable::find(const char *name) {
   sbuffer *b = access(name);

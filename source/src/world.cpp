@@ -3,7 +3,7 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-sqr *world = NULL;
+sqr *world = nullptr;
 int sfactor, ssize, cubicsize, mipsize;
 
 header hdr;
@@ -366,7 +366,7 @@ void undelent(char *index) {
     conoutf("no more entities to undelete");
     return;
   }
-  int n = isdigit(*index) ? strtol(index, NULL, 0) : deleted_ents.length() - 1;
+  int n = isdigit(*index) ? strtol(index, nullptr, 0) : deleted_ents.length() - 1;
   if (deleted_ents.inrange(n)) {
     persistent_entity e = deleted_ents.remove(n);
     int t = e.type < MAXENTTYPES ? e.type : NOTUSED;
@@ -406,7 +406,7 @@ void unlistdeletedentity(char *which) {
   else if (!strcasecmp(which, "last"))
     deleted_ents.pop();
   else if (isdigit(*which)) {
-    int n = strtol(which, NULL, 0);
+    int n = strtol(which, nullptr, 0);
     if (deleted_ents.inrange(n)) deleted_ents.remove(n);
   }
   intret(deleted_ents.length());
@@ -769,7 +769,7 @@ bool empty_world(
     conoutf("map does not fit into smaller world");
     return false;
   }
-  block *ow = NULL, be = {0, 0, ssize, ssize},
+  block *ow = nullptr, be = {0, 0, ssize, ssize},
         bs = {ssize / 4, ssize / 4, ssize / 2, ssize / 2};
   int oldfactor = sfactor;
   bool copy = false;
@@ -850,7 +850,7 @@ bool empty_world(
   return true;
 }
 
-void mapsize(void) { intret(sfactor); }
+void mapsize() { intret(sfactor); }
 
 COMMAND(mapsize, "");
 
@@ -1033,7 +1033,7 @@ void mapmrproper(bool manual) {
 
   // generate special mipmap without considering light or utex/wtex -> we'll try
   // to reach this by optimization...
-  sqr *worldbackup =
+  auto *worldbackup =
       (sqr *)memcpy(new sqr[ssize * ssize], world, ssize * ssize * sizeof(sqr));
   r = world;
   loopirev(ssize * ssize) {
@@ -1085,7 +1085,7 @@ void mapmrproper(bool manual) {
   }
 
   // use the remaining invisibilities to help the run-length-encoder
-  r = NULL, s = world;
+  r = nullptr, s = world;
 #define c(f) (s->f == r->f)
   loopi(cubicsize) {
     if (SOLID(s)) {

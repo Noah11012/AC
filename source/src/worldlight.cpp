@@ -15,16 +15,16 @@ void lightray(float bx, float by, const persistent_entity &light,
   float dist = sqrtf(dx * dx + dy * dy);
   if (dist < 1.0f) return;
   int reach = light.attr1;
-  int steps = (int)(reach * reach * 1.6f / dist);
+  auto steps = (int)(reach * reach * 1.6f / dist);
   const int PRECBITS = 12;
   const float PRECF = 4096.0f;
-  int x = (int)(lx * PRECF);
-  int y = (int)(ly * PRECF);
-  int fadescale = (int)(fade * PRECF);
+  auto x = (int)(lx * PRECF);
+  auto y = (int)(ly * PRECF);
+  auto fadescale = (int)(fade * PRECF);
   int l = light.attr2 * fadescale;
-  int stepx = (int)(dx / (float)steps * PRECF);
-  int stepy = (int)(dy / (float)steps * PRECF);
-  int stepl = (int)(l / (float)steps);
+  auto stepx = (int)(dx / (float)steps * PRECF);
+  auto stepy = (int)(dy / (float)steps * PRECF);
+  auto stepl = (int)(l / (float)steps);
 
   if (maxtmus) {
     l /= LIGHTSCALE;
@@ -47,9 +47,9 @@ void lightray(float bx, float by, const persistent_entity &light,
       if (OUTBORD(x >> PRECBITS, y >> PRECBITS)) return;
 
       int g = light.attr3 * fadescale;
-      int stepg = (int)(g / (float)steps);
+      auto stepg = (int)(g / (float)steps);
       int b = light.attr4 * fadescale;
-      int stepb = (int)(b / (float)steps);
+      auto stepb = (int)(b / (float)steps);
       g /= LIGHTSCALE;
       stepg /= LIGHTSCALE;
       b /= LIGHTSCALE;
@@ -128,7 +128,7 @@ void calclightsource(const persistent_entity &l, float fade = 1,
 
   const float s = 0.8f;
 
-  for (float sx2 = (float)sx; sx2 <= ex; sx2 += s * 2) {
+  for (auto sx2 = (float)sx; sx2 <= ex; sx2 += s * 2) {
     lightray(sx2, (float)sy, l, fade, flicker);
     lightray(sx2, (float)ey, l, fade, flicker);
   }
@@ -297,7 +297,7 @@ void adddynlight(physent *owner, const vec &o, int reach, int expire, int fade,
   d.g = g;
   d.b = b;
 
-  d.area = NULL;
+  d.area = nullptr;
   preparedynlight(d);
 }
 
@@ -315,7 +315,7 @@ void removedynlights(physent *owner) {
 
 void dodynlights() {
   if (dlights.empty()) return;
-  const block *area = NULL;
+  const block *area = nullptr;
   loopv(dlights) {
     dlight &d = dlights[i];
     if (lastmillis >= d.expire) {
@@ -347,7 +347,7 @@ void dodynlights() {
 
 void undodynlights() {
   if (dlights.empty()) return;
-  const block *area = NULL;
+  const block *area = nullptr;
   loopvrev(dlights) {
     const dlight &d = dlights[i];
     if (area) {
@@ -362,7 +362,7 @@ void undodynlights() {
 // utility functions also used by editing code
 
 block *blockcopy(const block &s) {
-  block *b = (block *)new uchar[sizeof(block) + s.xs * s.ys * sizeof(sqr)];
+  auto *b = (block *)new uchar[sizeof(block) + s.xs * s.ys * sizeof(sqr)];
   *b = s;
   sqr *q = (sqr *)(b + 1), *r = S(s.x, s.y);
   size_t bs = s.xs * sizeof(sqr);
@@ -375,7 +375,7 @@ block *blockcopy(const block &s) {
 }
 
 void blocktexusage(const block &b, uchar *used) {
-  const sqr *q = (const sqr *)((&b) + 1);
+  const auto *q = (const sqr *)((&b) + 1);
   loopirev(b.xs * b.ys) {  // collect used texture slots in block
     used[q->wtex] = 1;
     if (q->type != SOLID) {
@@ -390,8 +390,8 @@ void blocktexusage(const block &b, uchar *used) {
 void blockpaste(const block &b, int bx, int by, bool light,
                 uchar *texmap)  // slow version, editmode only
 {
-  const sqr *q = (const sqr *)((&b) + 1);
-  sqr *dest = 0;
+  const auto *q = (const sqr *)((&b) + 1);
+  sqr *dest = nullptr;
   uchar tr, tg, tb;
 
   for (int y = by; y < b.ys + by; y++)
@@ -426,7 +426,7 @@ void blockpaste(const block &b, int bx, int by, bool light,
 
 void blockpaste(const block &b)  // fast version, used by dynlight
 {
-  const sqr *q = (const sqr *)((&b) + 1);
+  const auto *q = (const sqr *)((&b) + 1);
   sqr *r = S(b.x, b.y);
   const size_t bs = b.xs * sizeof(sqr);
   loopirev(b.ys) {
@@ -442,6 +442,6 @@ void freeblockp(block *b) { delete[](uchar *) b; }
 void freeblock(block *&b) {
   if (b) {
     freeblockp(b);
-    b = NULL;
+    b = nullptr;
   }
 }

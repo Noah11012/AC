@@ -1,6 +1,6 @@
 // very simple http get function
 
-#include <errno.h>
+#include <cerrno>
 #include "cube.h"
 
 #define CR 13
@@ -27,7 +27,7 @@ void httpget::reset(int keep)  // keep == 0: delete all, keep == 1: keep
     connecttimeout = 6000;
     disconnect();
   }
-  err = NULL;
+  err = nullptr;
   response = chunked = gzipped = contentlength = offset = elapsedtime =
       traffic = 0;
   if (keep < 2) DELSTRING(url);
@@ -103,14 +103,14 @@ bool httpget::connect(bool force) {
     }
     void *ti = sl_createthread(hcont, &ci);
     loopk(connecttimeout / 250 + 1) {
-      sl_detachthread(NULL);  // cleanup call
+      sl_detachthread(nullptr);  // cleanup call
       sl_sleep(250);
       if (ci.running)  // wait for the connect thread to copy its data
       {
         if (sl_pollthread(ti)) {
           if (sl_waitthread(ti) < 0) {
             err = "could not connect";
-            ti = NULL;
+            ti = nullptr;
             break;
           } else {
             tcp = ci.sock;
@@ -133,7 +133,7 @@ bool httpget::connect(bool force) {
 int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range,
                  bool head) {
   int redirects = 0, res = 0, transferred = 0;
-  vector<char> *content = NULL;
+  vector<char> *content = nullptr;
   ASSERT(timeout && totaltimeout);  // zero is not allowed
   stopwatch to;
   to.start();
@@ -170,7 +170,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range,
     while (buf.dataLength > 0) {
       enet_uint32 events = ENET_SOCKET_WAIT_SEND;
       if (enet_socket_wait(tcp, &events, 250) >= 0 && events) {
-        int sent = enet_socket_send(tcp, NULL, &buf, 1);
+        int sent = enet_socket_send(tcp, nullptr, &buf, 1);
         if (sent < 0) {
           if (!reconnected) {  // line went dead, maybe the server closed it -
                                // try reconnecting once
@@ -206,7 +206,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range,
           if (rawrec.length() >= rawrec.capacity()) rawrec.reserve(4096);
           buf.data = rawrec.getbuf() + rawrec.length();
           buf.dataLength = rawrec.capacity() - rawrec.length();
-          int recv = enet_socket_receive(tcp, NULL, &buf, 1);
+          int recv = enet_socket_receive(tcp, nullptr, &buf, 1);
           if (recv <= 0) {
             if (!haveheader && !reconnected)
               retry = true;  // line may be half dead - retry once
@@ -292,7 +292,7 @@ int httpget::get(const char *url1, uint timeout, uint totaltimeout, int range,
             const char *d = rawrec.getbuf(), *e = d;
             if (chunked) {  // n * "chunksize\r\nchunkdata\r\n" + "0\r\n\r\n"
               while (strchr(d, LF)) {
-                int chunklen = (int)strtol(d, (char **)&e, 16);
+                auto chunklen = (int)strtol(d, (char **)&e, 16);
                 if (*e == CR) e++;
                 if (*e == LF && rawrec.length() >= chunklen + (e - d) + 2 &&
                     (e[chunklen + 1] == LF ||

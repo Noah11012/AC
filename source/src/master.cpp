@@ -1,5 +1,5 @@
 #include <enet/time.h>
-#include <signal.h>
+#include <csignal>
 #include "cube.h"
 
 #define INPUT_LIMIT 4096
@@ -15,7 +15,7 @@
 #define KEEPALIVE_TIME (65 * 60 * 1000)
 #define SERVER_LIMIT (10 * 1024)
 
-FILE *logfile = NULL;
+FILE *logfile = nullptr;
 
 // for AUTH:
 struct userinfo {
@@ -62,7 +62,7 @@ void addban(vector<baninfo> &bans, const char *name) {
   ip.i = 0;
   mask.i = 0;
   loopi(4) {
-    char *end = NULL;
+    char *end = nullptr;
     int n = strtol(name, &end, 10);
     if (!end) break;
     if (end > name) {
@@ -156,24 +156,19 @@ struct client {
   ENetAddress address;
   ENetSocket socket;
   char input[INPUT_LIMIT];
-  messagebuf *message;
+  messagebuf *message{NULL};
   vector<char> output;
-  int inputpos, outputpos;
+  int inputpos{0}, outputpos{0};
   enet_uint32 connecttime, lastinput;
-  int servport;
-  enet_uint32 lastauth;      // for AUTH
+  int servport{-1};
+  enet_uint32 lastauth{0};      // for AUTH
   vector<authreq> authreqs;  // for AUTH
-  bool shouldpurge;
-  bool registeredserver;
+  bool shouldpurge{false};
+  bool registeredserver{false};
 
   client()
-      : message(NULL),
-        inputpos(0),
-        outputpos(0),
-        servport(-1),
-        lastauth(0),
-        shouldpurge(false),
-        registeredserver(false) {}
+      
+        {}
 };
 vector<client *> clients;
 
@@ -236,7 +231,7 @@ bool setuppingsocket() {
   return true;
 }
 
-void setupserver(int port, const char *ip = NULL) {
+void setupserver(int port, const char *ip = nullptr) {
   ENetAddress address;
   address.host = ENET_HOST_ANY;
   address.port = port;
@@ -257,7 +252,7 @@ void setupserver(int port, const char *ip = NULL) {
 
   enet_time_set(0);
 
-  starttime = time(NULL);
+  starttime = time(nullptr);
   char *ct = ctime(&starttime);
   if (strchr(ct, '\n')) *strchr(ct, '\n') = '\0';
   conoutf("*** Starting master server on %s %d at %s ***",
@@ -268,7 +263,7 @@ void genserverlist() {
   if (!updateserverlist) return;
   while (gameserverlists.length() && gameserverlists.last()->refs <= 0)
     delete gameserverlists.pop();
-  messagebuf *l = new messagebuf(gameserverlists);
+  auto *l = new messagebuf(gameserverlists);
   loopv(gameservers) {
     gameserver &s = *gameservers[i];
     if (!s.lastpong) continue;
@@ -281,7 +276,7 @@ void genserverlist() {
 }
 
 void gengbanlist() {
-  messagebuf *l = new messagebuf(gbanlists);
+  auto *l = new messagebuf(gbanlists);
   const char *header = "cleargbans\n";
   l->buf.put(header, strlen(header));
   string cmd = "addgban ";
@@ -340,7 +335,7 @@ client *findclient(gameserver &s) {
     client &c = *clients[i];
     if (s.address.host == c.address.host && s.port == c.servport) return &c;
   }
-  return NULL;
+  return nullptr;
 }
 
 void servermessage(gameserver &s, const char *msg) {
@@ -444,7 +439,7 @@ void reqauth(client &c, uint id, char *name) {
 
   purgeauths(c);
 
-  time_t t = time(NULL);
+  time_t t = time(nullptr);
   char *ct = ctime(&t);
   if (ct) {
     char *newline = strchr(ct, '\n');
@@ -502,7 +497,7 @@ void confauth(client &c, uint id, const char *val) {
 
 bool checkclientinput(client &c) {
   if (c.inputpos < 0) return true;
-  char *end = (char *)memchr(c.input, '\n', c.inputpos);
+  auto *end = (char *)memchr(c.input, '\n', c.inputpos);
   while (end) {
     *end++ = '\0';
     c.lastinput = servtime;
@@ -579,7 +574,7 @@ void checkclients() {
       }
       if (dups >= DUP_LIMIT) purgeclient(oldest);
 
-      client *c = new client;
+      auto *c = new client;
       c->address = address;
       c->socket = clientsocket;
       c->connecttime = servtime;
@@ -598,7 +593,7 @@ void checkclients() {
       ENetBuffer buf;
       buf.data = (void *)&data[c.outputpos];
       buf.dataLength = len - c.outputpos;
-      int res = enet_socket_send(c.socket, NULL, &buf, 1);
+      int res = enet_socket_send(c.socket, nullptr, &buf, 1);
       if (res >= 0) {
         c.outputpos += res;
         if (c.outputpos >= len) {
@@ -606,7 +601,7 @@ void checkclients() {
             c.output.setsize(0);
           else {
             c.message->purge();
-            c.message = NULL;
+            c.message = nullptr;
           }
           c.outputpos = 0;
           if (!c.message && c.output.empty() && c.shouldpurge) {
@@ -623,7 +618,7 @@ void checkclients() {
       ENetBuffer buf;
       buf.data = &c.input[c.inputpos];
       buf.dataLength = sizeof(c.input) - c.inputpos;
-      int res = enet_socket_receive(c.socket, NULL, &buf, 1);
+      int res = enet_socket_receive(c.socket, nullptr, &buf, 1);
       if (res > 0) {
         c.inputpos += res;
         c.input[min(c.inputpos, (int)sizeof(c.input) - 1)] = '\0';
@@ -665,14 +660,14 @@ int main(int argc, char **argv) {
   int port = AC_MASTER_PORT;
   if (argc >= 2) dir = argv[1];
   if (argc >= 3 && argv[2][0]) port = atoi(argv[2]);
-  if (argc >= 4) ip = argv[3][0] ? argv[3] : NULL;
+  if (argc >= 4) ip = argv[3][0] ? argv[3] : nullptr;
   defformatstring(logname)("%smaster.log", dir);
   defformatstring(cfgname)("%smaster.cfg", dir);
   path(logname);
   path(cfgname);
   logfile = fopen(logname, "a");
   if (!logfile) logfile = stdout;
-  setvbuf(logfile, NULL, _IOLBF, 0);
+  setvbuf(logfile, nullptr, _IOLBF, 0);
 #ifndef WIN32
   signal(SIGUSR1, reloadsignal);
 #endif

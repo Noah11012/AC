@@ -102,7 +102,7 @@ void rendermapmodels() {
           vec(e.x, e.y,
               S(e.x, e.y)->floor + mmi->zoff + float(e.attr3) / ENTSCALE5),
           e.attr6, float(e.attr1) / ENTSCALE10, float(e.attr5) / ENTSCALE10,
-          10.0f, 0, NULL, NULL, mmi->scale);
+          10.0f, 0, nullptr, nullptr, mmi->scale);
     }
   }
 }
@@ -322,7 +322,7 @@ void pickupeffects(int n, playerent *d) {
             6 = akimbo
       */
       if (identexists("onPickup")) {
-        itemstat *tmp = NULL;
+        itemstat *tmp = nullptr;
         switch (e.type) {
           case I_CLIPS:
             tmp = &ammostats[GUN_PISTOL];
@@ -352,7 +352,7 @@ void pickupeffects(int n, playerent *d) {
       audiomgr.playsound(is->sound, d);
   }
 
-  weapon *w = NULL;
+  weapon *w = nullptr;
   switch (e.type) {
     case I_AKIMBO:
       w = d->weapons[GUN_AKIMBO];
@@ -603,7 +603,7 @@ void flagdropped(int flag, float x, float y, float z) {
 
 void flaginbase(int flag) {
   flaginfo &f = flaginfos[flag];
-  f.actor = NULL;
+  f.actor = nullptr;
   f.actor_cn = -1;
   f.pos = vec(f.flagent->x, f.flagent->y, f.flagent->z);
   f.flagent->spawned = true;
@@ -615,9 +615,9 @@ void flagidle(int flag) {
   flaginfos[flag].flagent->spawned = false;
 }
 
-void entstats_(void) {
+void entstats_() {
   entitystats_s es;
-  calcentitystats(es, NULL, 0);
+  calcentitystats(es, nullptr, 0);
   int clipents = 0, xmodels = 0, xsounds = 0;
   loopv(ents) {
     entity &e = ents[i];

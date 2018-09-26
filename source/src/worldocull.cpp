@@ -31,7 +31,7 @@ void computeraytable(float vx, float vy, float fov) {
   }
   odist = fog * 1.5f;
 
-  float apitch = (float)fabs(camera1->pitch);
+  auto apitch = (float)fabs(camera1->pitch);
   float af = fov / 2 + max(apitch / 1.5f, 4.2f);
   float byaw = (camera1->yaw - 90 + af) / 360 * PI2;
   float syaw = (camera1->yaw - 90 - af) / 360 * PI2;
@@ -80,7 +80,7 @@ void computeraytable(float vx, float vy, float fov) {
         if (SOLID(S(int(sx), int(sy))))  // 90% of time spend in this function
                                          // is on this line
         {
-          float dist = (float)(fabs(sx - vx) + fabs(sy - vy));
+          auto dist = (float)(fabs(sx - vx) + fabs(sy - vy));
           if (firstquarter || dist > rdist[k]) rdist[k] = dist;
           if (firstquarter) ndist[k] = max(iabs(sx - vx), iabs(sy - vy));
           break;

@@ -45,7 +45,7 @@ void setskin(playerent *pl, int skin, int team) {
 
 extern char *global_name;
 
-bool duplicatename(playerent *d, char *name = NULL) {
+bool duplicatename(playerent *d, char *name = nullptr) {
   if (!name) name = d->name;
   if (d != player1 && !strcmp(name, player1->name) && !watchingdemo)
     return true;
@@ -97,7 +97,7 @@ const char *highlight(const char *text) {
       }
       l = s + strlen(s);
     }
-    s = strtok_r(NULL, sep, &b);
+    s = strtok_r(nullptr, sep, &b);
   }
   if (MAXTRANS - strlen(result) > strlen(text) - (l - temp))
     strcat(result, text + (l - temp));
@@ -266,7 +266,7 @@ void playerinfo(int *cn, const char *attr) {
   if (!p) {
     if (!m_botmode &&
         multiplayer(
-            NULL))  // bot clientnums are still glitchy, causing this message to
+            nullptr))  // bot clientnums are still glitchy, causing this message to
                     // sometimes appear in offline/singleplayer when it
                     // shouldn't??? -Bukz 2012may
       conoutf("invalid clientnum cn: %d attr: %s", clientnum, attr);
@@ -391,7 +391,7 @@ const char *currentserver(int i)  // [client version]
     switch (i) {
       case 1:  // IP
       {
-        uchar *ip = (uchar *)&curpeer->address.host;
+        auto *ip = (uchar *)&curpeer->address.host;
         formatstring(r)("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
         break;
       }
@@ -454,7 +454,7 @@ const char *currentserver(int i)  // [client version]
         // just IP & PORT as default response - always available, no
         // lookup-delay either
       default: {
-        uchar *ip = (uchar *)&curpeer->address.host;
+        auto *ip = (uchar *)&curpeer->address.host;
         formatstring(r)("%d.%d.%d.%d %d", ip[0], ip[1], ip[2], ip[3],
                         curpeer->address.port);
         break;
@@ -505,7 +505,7 @@ void spawnstate(
 
 playerent *newplayerent()  // create a new blank player
 {
-  playerent *d = new playerent;
+  auto *d = new playerent;
   d->lastupdate = totalmillis;
   setskin(d, rnd(6));
   weapon::equipplayer(
@@ -517,7 +517,7 @@ playerent *newplayerent()  // create a new blank player
 
 botent *newbotent()  // create a new blank player
 {
-  botent *d = new botent;
+  auto *d = new botent;
   d->lastupdate = totalmillis;
   setskin(d, rnd(6));
   weapon::equipplayer(d);
@@ -669,7 +669,7 @@ struct scriptsleep {
 };
 vector<scriptsleep> sleeps;
 sl_semaphore *sleepssemaphore =
-    new sl_semaphore(1, NULL);  // guard the sleeps-vector with a semaphore, so
+    new sl_semaphore(1, nullptr);  // guard the sleeps-vector with a semaphore, so
                                 // we can add sleeps from other threads
 
 void addsleep(int msec, const char *cmd, bool persist) {
@@ -705,7 +705,7 @@ void updateworld(int curtime, int lastmillis)  // main game update loop
   loopv(sleeps) {
     if (lastmillis - sleeps[i].millis >= sleeps[i].wait) {
       char *cmd = sleeps[i].cmd;
-      sleeps[i].cmd = NULL;
+      sleeps[i].cmd = nullptr;
       sleeps.remove(i--);
       sleepssemaphore->post();
       execute(cmd);
@@ -763,7 +763,7 @@ void gotoplayerstart(playerent *d, entity *e) {
 
 void findplayerstart(playerent *d, bool mapcenter, int arenaspawn) {
   int r = fixspawn-- > 0 ? 4 : rnd(10) + 1;
-  entity *e = NULL;
+  entity *e = nullptr;
   if (!mapcenter) {
     int type = m_teammode ? team_base(d->team) : 100;
     if (m_arena && arenaspawn >= 0) {
@@ -858,7 +858,7 @@ inline const char *spawn_message() {
              "download it.";
   } else if (m_coop)
     return "3Type /getmap or send a map and vote for it to start co-op edit.";
-  else if (multiplayer(NULL))
+  else if (multiplayer(nullptr))
     return "4Awaiting permission to spawn. \f2DON'T PANIC!";
   else
     return "";  // theres no waiting for permission in sp
@@ -871,7 +871,7 @@ inline const char *spawn_message() {
 int waiting_permission = 0;
 
 bool tryrespawn() {
-  if (m_mp(gamemode) && multiplayer(NULL) && bad_map()) {
+  if (m_mp(gamemode) && multiplayer(nullptr) && bad_map()) {
     hudoutf(
         "This map is not supported in multiplayer. Read the docs about map "
         "quality/dimensions.");
@@ -963,7 +963,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib,
                           player1->spectatemode == SM_FOLLOW3RD ||
                           player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT)
                      ? getclient(player1->followplayercn)
-                     : NULL;
+                     : nullptr;
   if (!h) h = player1;
   exechook(HOOK_SP, "onHit", "%d %d %d %d %d", actor->clientnum, pl->clientnum,
            damage, gun, gib ? 1 : 0);
@@ -1105,7 +1105,7 @@ playerent *newclient(int cn)  // ensure valid entity
 {
   if (cn < 0 || cn >= MAXCLIENTS) {
     neterr("clientnum");
-    return NULL;
+    return nullptr;
   }
   while (cn >= players.length()) players.add(NULL);
   playerent *d = players[cn];
@@ -1136,7 +1136,7 @@ void initflag(int i) {
   f.flagent = &flagdummies[i];
   f.pos = vec(f.flagent->x, f.flagent->y, f.flagent->z);
   f.ack = true;
-  f.actor = NULL;
+  f.actor = nullptr;
   f.actor_cn = -1;
   f.team = i;
   f.state = m_ktf ? CTFF_IDLE : CTFF_INBASE;
@@ -1280,7 +1280,7 @@ void startmap(const char *name, bool reset,
     conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0),
             noflags ? " - \f2but there are no flag bases on this map" : "");
 
-  if (showmodedescriptions && (multiplayer(NULL) || m_botmode)) {
+  if (showmodedescriptions && (multiplayer(nullptr) || m_botmode)) {
     loopv(gmdescs) if (gmdescs[i].mode == gamemode)
         conoutf("\f1%s", gmdescs[i].desc);
   }
@@ -1478,8 +1478,8 @@ char *votestring(int type, const char *arg1, const char *arg2,
 votedisplayinfo *newvotedisplayinfo(playerent *owner, int type,
                                     const char *arg1, const char *arg2,
                                     const char *arg3) {
-  if (type < 0 || type >= SA_NUM) return NULL;
-  votedisplayinfo *v = new votedisplayinfo();
+  if (type < 0 || type >= SA_NUM) return nullptr;
+  auto *v = new votedisplayinfo();
   v->owner = owner;
   v->type = type;
   v->millis = totalmillis + (30 + 10) * 1000;
@@ -1489,7 +1489,7 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type,
   return v;
 }
 
-votedisplayinfo *curvote = NULL, *calledvote = NULL;
+votedisplayinfo *curvote = nullptr, *calledvote = nullptr;
 
 void callvote(int type, const char *arg1, const char *arg2, const char *arg3) {
   if (calledvote) return;
@@ -1549,8 +1549,8 @@ void scallvote(int *type, const char *arg1, const char *arg2) {
       case SA_KICK:
       case SA_BAN: {
         if (!arg1 || !isdigit(arg1[0]) || !arg2 || strlen(arg2) <= 3 ||
-            !multiplayer(NULL)) {
-          if (!multiplayer(NULL))
+            !multiplayer(nullptr)) {
+          if (!multiplayer(nullptr))
             conoutf("\f3%s is not available in singleplayer.",
                     t == SA_BAN ? "Ban" : "Kick");
           else if (arg1 && !isdigit(arg1[0]))
@@ -1603,7 +1603,7 @@ void displayvote(votedisplayinfo *v) {
 void callvotesuc() {
   if (!calledvote) return;
   displayvote(calledvote);
-  calledvote = NULL;
+  calledvote = nullptr;
   vote(
       VOTE_YES);  // not automatically done by callvote to keep a clear sequence
 }
@@ -1622,7 +1622,7 @@ void voteresult(int v) {
     curvote->result = v;
     curvote->millis = totalmillis + 5000;
     conoutf("vote %s", v == VOTE_YES ? "passed" : "failed");
-    if (multiplayer(NULL))
+    if (multiplayer(nullptr))
       audiomgr.playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
     exechook(HOOK_SP_MP, "onVoteEnd", "");
     votepending = 0;
@@ -1640,7 +1640,7 @@ const char *modestrings[] = {
     "tpf", "tlss", "bpf",  "blss",  "btsurv", "btosok"};
 
 void setnext(char *mode, char *map) {
-  if (!multiplayer(NULL)) {  // RR 10/12/12 - Is this the action we want?
+  if (!multiplayer(nullptr)) {  // RR 10/12/12 - Is this the action we want?
     conoutf("You cannot use setnext in singleplayer.");
     return;
   }
@@ -1668,7 +1668,7 @@ void setnext(char *mode, char *map) {
 COMMAND(setnext, "ss");
 
 void gonext(int *arg1) {
-  if (calledvote || !multiplayer(NULL)) return;
+  if (calledvote || !multiplayer(nullptr)) return;
   packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
   putint(p, SV_CALLVOTE);
   putint(p, SA_MAP);
@@ -1683,8 +1683,8 @@ COMMANDN(callvote, scallvote, "iss");  // fixme,ah
 COMMANDF(vote, "i", (int *v) { vote(*v); });
 
 void cleanplayervotes(playerent *p) {
-  if (calledvote && calledvote->owner == p) calledvote->owner = NULL;
-  if (curvote && curvote->owner == p) curvote->owner = NULL;
+  if (calledvote && calledvote->owner == p) calledvote->owner = nullptr;
+  if (curvote && curvote->owner == p) curvote->owner = nullptr;
 }
 
 void whois(int *cn) {
@@ -1732,8 +1732,8 @@ COMMAND(setadmin, "is");
 
 static vector<mline> mlines;
 
-void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL,
-     *giveadminmenu = NULL;
+void *kickmenu = nullptr, *banmenu = nullptr, *forceteammenu = nullptr,
+     *giveadminmenu = nullptr;
 
 void refreshsopmenu(void *menu, bool init) {
   menureset(menu);
@@ -1743,7 +1743,7 @@ void refreshsopmenu(void *menu, bool init) {
     mline &m = mlines.add();
     copystring(m.name, colorname(players[i]));
     string kbr;
-    if (getalias("_kickbanreason") != NULL)
+    if (getalias("_kickbanreason") != nullptr)
       formatstring(kbr)(" [ %s ]",
                         getalias("_kickbanreason"));  // leading space!
     formatstring(m.cmd)(
@@ -1785,7 +1785,7 @@ playerent *updatefollowplayer(int shiftdirection) {
       continue;  // don't spect dead players, but in some cases stay on them
     available.add(players[i]);
   }
-  if (available.length() < 1) return NULL;
+  if (available.length() < 1) return nullptr;
 
   // rotate
   int oldidx = f ? available.find(f) : 0;

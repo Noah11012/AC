@@ -33,7 +33,7 @@ const char *asctimestr() { return timestring(true, "%c"); }
 
 const char *numtime() {
   static string numt;
-  time_t t = time(NULL);
+  time_t t = time(nullptr);
   int t1 = t / 1000000, t2 = t % 1000000;
   formatstring(numt)("%d%06d", t1, t2);
   return numt + strspn(numt, "0");
@@ -393,8 +393,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout) {
   const int sizeof_header = sizeof(header),
             sizeof_baseheader = sizeof_header - sizeof(int) * 16;
   static mapstats s;
-  static uchar *enttypes = NULL;
-  static short *entposs = NULL;
+  static uchar *enttypes = nullptr;
+  static short *entposs = nullptr;
 
   DELETEA(enttypes);
   loopi(MAXENTTYPES) s.entcnt[i] = 0;
@@ -402,12 +402,12 @@ mapstats *loadmapstats(const char *filename, bool getlayout) {
   loopi(2) s.flags[i] = 0;
 
   stream *f = opengzfile(filename, "rb");
-  if (!f) return NULL;
+  if (!f) return nullptr;
   memset(&s.hdr, 0, sizeof_header);
   if (f->read(&s.hdr, sizeof_baseheader) != sizeof_baseheader ||
       (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP", 4))) {
     delete f;
-    return NULL;
+    return nullptr;
   }
   lilswap(&s.hdr.version, 4);
   s.hdr.headersize = fixmapheadersize(s.hdr.version, s.hdr.headersize);
@@ -417,7 +417,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout) {
       !f->seek(clamp(s.hdr.headersize - sizeof_header, 0, MAXHEADEREXTRA),
                SEEK_CUR)) {
     delete f;
-    return NULL;
+    return nullptr;
   }
   if (s.hdr.version >= 4) {
     lilswap(&s.hdr.waterlevel, 1);
@@ -453,7 +453,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout) {
     bool fail = false;
     testlayout = new char[layoutsize + 256];
     memset(testlayout, 0, layoutsize * sizeof(char));
-    char *t = NULL;
+    char *t = nullptr;
     char floor = 0, ceil;
     int diff = 0;
     Mvolume = Marea = SHhits = 0;
@@ -688,24 +688,24 @@ const char *atoip(const char *s, enet_uint32 *ip) {
   unsigned int d[4];
   int n;
   if (!s || sscanf(s, "%u.%u.%u.%u%n", d, d + 1, d + 2, d + 3, &n) != 4)
-    return NULL;
+    return nullptr;
   *ip = 0;
   loopi(4) {
-    if (d[i] > 255) return NULL;
+    if (d[i] > 255) return nullptr;
     *ip = (*ip << 8) + d[i];
   }
   return s + n;
 }
 
 const char *atoipr(const char *s, iprange *ir) {
-  if ((s = atoip(s, &ir->lr)) == NULL) return NULL;
+  if ((s = atoip(s, &ir->lr)) == nullptr) return nullptr;
   ir->ur = ir->lr;
   s += strspn(s, " \t");
   if (*s == '-') {
-    if (!(s = atoip(s + 1, &ir->ur)) || ir->lr > ir->ur) return NULL;
+    if (!(s = atoip(s + 1, &ir->ur)) || ir->lr > ir->ur) return nullptr;
   } else if (*s == '/') {
     int m, n;
-    if (sscanf(s + 1, "%d%n", &m, &n) != 1 || m < 0 || m > 32) return NULL;
+    if (sscanf(s + 1, "%d%n", &m, &n) != 1 || m < 0 || m > 32) return nullptr;
     unsigned long bm = (1 << (32 - m)) - 1;
     ir->lr &= ~bm;
     ir->ur |= bm;
@@ -774,7 +774,7 @@ int getlistindex(const char *key, const char *list[], bool acceptnumeric,
     else
       max++;
   if (acceptnumeric && isdigit(key[0])) {
-    int i = (int)strtol(key, NULL, 0);
+    auto i = (int)strtol(key, nullptr, 0);
     if (i >= 0 && i < max) return i;
   }
 #if !defined(STANDALONE) && defined(_DEBUG)
@@ -866,7 +866,7 @@ static int sl_sem_errorcountdummy = 0;
 sl_semaphore::sl_semaphore(int init, int *ecnt) {
   data = (void *)SDL_CreateSemaphore(init);
   errorcount = ecnt ? ecnt : &sl_sem_errorcountdummy;
-  if (data == NULL) (*errorcount)++;
+  if (data == nullptr) (*errorcount)++;
 }
 
 sl_semaphore::~sl_semaphore() {
@@ -949,7 +949,7 @@ static int sl_thread_indir(void *info) {
 }
 
 void *sl_createthread(int (*fn)(void *), void *data) {
-  sl_threadinfo *ti = new sl_threadinfo;
+  auto *ti = new sl_threadinfo;
   ti->data = data;
   ti->fn = fn;
   ti->done = 0;
@@ -965,22 +965,22 @@ int sl_waitthread(void *ti) {
 }
 
 static vector<sl_threadinfo *> oldthreads;
-static sl_semaphore sem_oldthreads(1, NULL);
+static sl_semaphore sem_oldthreads(1, nullptr);
 
 void sl_detachthread(
     void *ti)  // SDL can't actually detach threads, so this is manual cleanup
 {
   if (ti && sl_pollthread(ti)) {
-    SDL_WaitThread(((sl_threadinfo *)ti)->handle, NULL);
+    SDL_WaitThread(((sl_threadinfo *)ti)->handle, nullptr);
     delete (sl_threadinfo *)ti;
-    ti = NULL;
+    ti = nullptr;
   }
   if (ti || sem_oldthreads.getvalue() > 0) {
     sem_oldthreads.wait();
     if (ti) oldthreads.add((sl_threadinfo *)ti);
     loopvrev(oldthreads) {
       if (oldthreads[i]->done) {
-        SDL_WaitThread(oldthreads[i]->handle, NULL);
+        SDL_WaitThread(oldthreads[i]->handle, nullptr);
         delete oldthreads.remove(i);
       }
     }

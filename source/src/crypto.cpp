@@ -19,7 +19,7 @@ static const char *hexdigits = "0123456789abcdef";
 #define TIGER_PASSES 3
 
 namespace tiger {
-typedef uint64_t chunk;
+using chunk = uint64_t;
 
 union hashval {
   uchar bytes[3 * 8];
@@ -417,7 +417,7 @@ uint randomMT() {
   int cur = mt_next;
   if (++mt_next >= MT_N) {
     if (mt_next > MT_N) {
-      seedMT(5489U + time(NULL));
+      seedMT(5489U + time(nullptr));
       cur = mt_next++;
     } else
       mt_next = 0;
@@ -449,10 +449,10 @@ void popMT()  // undo last seedMT()
 #define ENTPOOLSIZE (ENTCHUNKS * 128)
 #define ENTROPYSAVEFILE "config" PATHDIVS "entropy.dat"
 
-static uchar *entpool = NULL;
+static uchar *entpool = nullptr;
 
 static void xor_block(uchar *d, const uchar *s, int len) {
-  uint64_t *dd = (uint64_t *)d, *ss = (uint64_t *)s;
+  auto *dd = (uint64_t *)d, *ss = (uint64_t *)s;
   for (; len > 7; len -= 8) *dd++ ^= *ss++;
   d = (uchar *)dd, s = (uchar *)ss;
   while (len-- > 0) *d++ ^= *s++;
@@ -512,7 +512,7 @@ void entropy_add_block(const uchar *s, int len) {
 
 void entropy_get(uchar *buf, int len) {
   ASSERT(len <= ENTPOOLSIZE);
-  uchar *tempbuf = new uchar[len + SHA512SIZE];
+  auto *tempbuf = new uchar[len + SHA512SIZE];
   memcpy(tempbuf, entpool, len);
   memcpy(entpool + ENTPOOLSIZE, entpool, 128);
   sha512(tempbuf, entpool, ENTPOOLSIZE);
@@ -542,7 +542,7 @@ void passphrase2key(const char *pass, const uchar *salt, int saltlen,
       tmpbuflen = 2 * SHA512SIZE, pplen = 2 * (saltlen + passlen);
 
   // prepare the passphrase (including salt)
-  uchar *pp = new uchar[pplen];
+  auto *pp = new uchar[pplen];
   memcpy(pp, salt, saltlen);
   memcpy(pp + saltlen, pass, passlen);
   memcpy(pp + saltlen + passlen, pass, passlen);
@@ -551,7 +551,7 @@ void passphrase2key(const char *pass, const uchar *salt, int saltlen,
     identhash((uint64_t *)(pp + saltlen + passlen));
 
   // mix up the passphrase a bit
-  uchar *tmpbuf = new uchar[tmpbuflen + sizeof(uint)];
+  auto *tmpbuf = new uchar[tmpbuflen + sizeof(uint)];
   memset(tmpbuf, 0, tmpbuflen + sizeof(uint));
   sha512(tmpbuf, pp, pplen);
   xor_block(pp, tmpbuf, min(pplen, tmpbuflen));
@@ -559,7 +559,7 @@ void passphrase2key(const char *pass, const uchar *salt, int saltlen,
   tiger::hash(pp, pplen, *((tiger::hashval *)tmpbuf));
 
   // initialise the huge buffer
-  uchar *hugebuf = new uchar[memsize];
+  auto *hugebuf = new uchar[memsize];
   memset(hugebuf, 0, memsize);
   int memchunk = memsize / tmpbuflen;
   loopi(tmpbuflen) seedMT_do(
@@ -655,7 +655,7 @@ void ed25519_pubkey_from_private(uchar *pubkey, const uchar *privkey) {
 void privkey_from_prepriv(
     unsigned char *privkey, const unsigned char *prepriv, int preprivlen,
     unsigned char *privpriv =
-        NULL)  // derive private key from even more secret bulk of entropy
+        nullptr)  // derive private key from even more secret bulk of entropy
 {
   uchar temp[SHA512SIZE], pub[32], testpriv[32];
   sha512(temp, prepriv, preprivlen);
@@ -719,7 +719,7 @@ uchar *ed25519_sign_check(uchar *sm, int smlen, const uchar *pk) {
   sc25519 schram, scs;
 
   if (smlen < 64 || (sm[63] & 224) || ge25519_unpackneg_vartime(&get1, pk))
-    return NULL;  // frame error
+    return nullptr;  // frame error
 
   memmove(scopy, sm + 32, 32);
   sc25519_from32bytes(&scs, sm + 32);
@@ -734,7 +734,7 @@ uchar *ed25519_sign_check(uchar *sm, int smlen, const uchar *pk) {
 
   memmove(sm + 32, scopy, 32);  // restore sm
 
-  return memcmp(rcheck, sm, 32) ? NULL : sm + 64;
+  return memcmp(rcheck, sm, 32) ? nullptr : sm + 64;
 }
 
 #ifndef STANDALONE
@@ -866,7 +866,7 @@ VARP(
     authmaxtime, 1 << 9, 1 << 12,
     1 << 16);  // create new password hashes with a fixed amount of time (in ms)
 
-static uchar *sk = NULL;  // game key
+static uchar *sk = nullptr;  // game key
 static struct {
   uchar *salt, *priv;
   uint pwdcfg;
@@ -882,18 +882,18 @@ static int passdeferred(
   xor_block(passdargs.priv, keyhash, 32);
   delstring((char *)pass);
   extern void authsetup(char **args, int numargs);
-  authsetup(NULL, -1);  // tell authsetup, that the passwd is done
+  authsetup(nullptr, -1);  // tell authsetup, that the passwd is done
   return 0;
 }
 
 void authsetup(char **args, int numargs)  // set up private and public keys
 {
   const int preprivminlen = 32, preprivmaxlen = 128;
-  static uchar *buf = NULL, pub[32], keyhash[128], psalt[16], salt[16],
+  static uchar *buf = nullptr, pub[32], keyhash[128], psalt[16], salt[16],
                preprivlen = 0;
   static uint preprivpwdcfg = 0, privpwdcfg = 0;
-  static void *passdrunning = NULL, *passdcleanup = NULL;
-  static char *sleepcmd = NULL;
+  static void *passdrunning = nullptr, *passdcleanup = nullptr;
+  static char *sleepcmd = nullptr;
   if (!buf) entropy_get((buf = new uchar[1536]), 1536);
   uint32_t offs = 7337;
   loopi(16) fnv1a_add(offs, buf[i]);
@@ -905,7 +905,7 @@ void authsetup(char **args, int numargs)  // set up private and public keys
     if (numargs < 0) {  // finish password decryption (background mode)
       privpwdcfg = 0;
       passdcleanup = passdrunning;
-      passdrunning = NULL;
+      passdrunning = nullptr;
       if (sleepcmd) addsleep(0, sleepcmd);
       DELSTRING(sleepcmd);
     } else
@@ -916,7 +916,7 @@ void authsetup(char **args, int numargs)  // set up private and public keys
       return;  // should not happen
     else if (passdcleanup) {
       sl_waitthread(passdcleanup);
-      passdcleanup = NULL;
+      passdcleanup = nullptr;
     }
   }
 
@@ -934,11 +934,11 @@ void authsetup(char **args, int numargs)  // set up private and public keys
       if (numargs > 1) hex2bin(priv, args[1], 32);
       if (numargs > 2) hex2bin(salt, args[2], 16);
       privpwdcfg = numargs > 3 ? atoi(args[3]) : 0;
-      sk = NULL;
+      sk = nullptr;
     } else if (!strcasecmp(args[0], "PUB")) {
       // authsetup pub pubhex
       if (numargs > 1) hex2bin(pub, args[1], 32);
-      sk = NULL;
+      sk = nullptr;
     } else if (!strcasecmp(args[0], "PPASS")) {
       // authsetup ppass preprivpass
       int iterations = preprivpwdcfg >> 10;
@@ -963,7 +963,7 @@ void authsetup(char **args, int numargs)  // set up private and public keys
         passdargs.pwdcfg = privpwdcfg;
         passdrunning = sl_createthread(passdeferred,
                                        newstring(numargs > 1 ? args[1] : ""));
-        sleepcmd = numargs > 2 ? newstring(args[2]) : NULL;
+        sleepcmd = numargs > 2 ? newstring(args[2]) : nullptr;
       }
     } else if (!strcasecmp(args[0], "NEEDPASS")) {
       // authsetup needpass
@@ -996,7 +996,7 @@ void authsetup(char **args, int numargs)  // set up private and public keys
         }
         const char *fn =
             numargs > 2 && args[2][0] ? path(args[2]) : AUTHPREPRIVATECFGFILE;
-        char *oldfile = loadfile(fn, NULL);
+        char *oldfile = loadfile(fn, nullptr);
         stream *f = openfile(fn, "wb");
         if (f) {
           f->printf(
@@ -1007,7 +1007,7 @@ void authsetup(char **args, int numargs)  // set up private and public keys
               "// YOU DO NOT NEED THIS FILE TO PLAY AC!\n"
               "\n");
           if (oldfile)
-            for (char *l = strtok(oldfile, "\n\r"); l; l = strtok(NULL, "\n\r"))
+            for (char *l = strtok(oldfile, "\n\r"); l; l = strtok(nullptr, "\n\r"))
               if (*l) f->printf("// %s\n", l);
           f->printf("authsetup pre %s", bin2hex(hextemp, prepriv, preprivlen));
           if (preprivpwdcfg)
@@ -1033,11 +1033,11 @@ void authsetup(char **args, int numargs)  // set up private and public keys
         }
         const char *fn =
             numargs > 2 && args[2][0] ? path(args[2]) : AUTHPRIVATECFGFILE;
-        char *oldfile = loadfile(fn, NULL);
+        char *oldfile = loadfile(fn, nullptr);
         stream *f = openfile(fn, "wb");
         if (f) {
           if (oldfile)
-            for (char *l = strtok(oldfile, "\n\r"); l; l = strtok(NULL, "\n\r"))
+            for (char *l = strtok(oldfile, "\n\r"); l; l = strtok(nullptr, "\n\r"))
               if (*l) f->printf("// %s\n", l);
           f->printf("\nauthsetup priv %s", bin2hex(hextemp, priv, 32));
           if (privpwdcfg)
@@ -1074,7 +1074,7 @@ void authsetup(char **args, int numargs)  // set up private and public keys
       res = 1;  // "authsetup" with no arguments just checks the status
     DEBUG("successfully found keypair for pub " << bin2hex(hextemp, pub, 32));
   } else
-    sk = NULL;
+    sk = nullptr;
   intret(res);
 }
 COMMAND(authsetup, "v");
@@ -1097,7 +1097,7 @@ COMMAND(mypubkey, "");
 
 vector<authkey *> authkeys;
 
-authkey::authkey(const char *aname, const char *privkey) : name(NULL) {
+authkey::authkey(const char *aname, const char *privkey) : name(nullptr) {
   if (*aname && strlen(privkey) == 64 && hex2bin(sk, privkey, 32) == 32) {
     ed25519_pubkey_from_private(sk + 32, sk);
     name = newstring(aname);
@@ -1114,7 +1114,7 @@ bool delauthkey(const char *name) {
 const uchar *getauthkey(const char *name) {
   loopvrev(authkeys) if (!strcmp(authkeys[i]->name, name)) return authkeys[i]
       ->sk;
-  return NULL;
+  return nullptr;
 }
 
 void authkey_(char **args, int numargs)  // set up misc keys
@@ -1123,11 +1123,11 @@ void authkey_(char **args, int numargs)  // set up misc keys
     string buf;
     if (!strcasecmp(args[0], "CLEAR")) {  // authkey clear
       if (authkeys.length()) {
-        char *oldfile = loadfile(AUTHKEYSCFGFILE, NULL);
+        char *oldfile = loadfile(AUTHKEYSCFGFILE, nullptr);
         if (oldfile) {
           stream *f = openfile(AUTHKEYSCFGFILE, "wb");
           if (f) {  // don't really delete the old keys, just comment them out
-            for (char *l = strtok(oldfile, "\n\r"); l; l = strtok(NULL, "\n\r"))
+            for (char *l = strtok(oldfile, "\n\r"); l; l = strtok(nullptr, "\n\r"))
               if (*l) f->printf("// %s\n", l);
             delete f;
           }
@@ -1152,7 +1152,7 @@ void authkey_(char **args, int numargs)  // set up misc keys
         entropy_get(prepriv, 42);
         privkey_from_prepriv(priv, prepriv, 42);
         ed25519_pubkey_from_private(pub, priv);
-        authkey *ak = new authkey(args[1], bin2hex(buf, priv, 32));
+        auto *ak = new authkey(args[1], bin2hex(buf, priv, 32));
         if (ak->name) {
           authkeys.add(ak);
           stream *f = openfile(AUTHKEYSCFGFILE, "ab");
@@ -1174,7 +1174,7 @@ void authkey_(char **args, int numargs)  // set up misc keys
     } else if (!strcasecmp(args[0], "ADD")) {  // authkey add name privkey
       if (numargs > 2) {
         delauthkey(args[1]);
-        authkey *ak = new authkey(args[1], args[2]);
+        auto *ak = new authkey(args[1], args[2]);
         if (ak->name)
           authkeys.add(ak);
         else
@@ -1238,15 +1238,15 @@ vector<cert *> certs;
 hashtable<const uchar *, char> certblacklist;
 
 static inline int aktcerttime() {
-  return time(NULL) / (time_t)60;
+  return time(nullptr) / (time_t)60;
 }  // use minutes instead of seconds as timebase, so int will be more than
    // enough
 
 bool cert::parse()  // parse orgmsg[] and check the signature
 {
   isvalid = ischecked = needsrenewal = expired = false;
-  pubkey = signedby = NULL;
-  name = NULL;
+  pubkey = signedby = nullptr;
+  name = nullptr;
   type = CERT_MISC;
   DELETEA(workmsg);
   lines.setsize(0);
@@ -1260,7 +1260,7 @@ bool cert::parse()  // parse orgmsg[] and check the signature
         64) {  // parse all lines
       certline line;
       for (char *l = strtok(workmsg + certheaderlenfull, "\n\r"); l;
-           l = strtok(NULL, "\n\r")) {
+           l = strtok(nullptr, "\n\r")) {
         // get comment
         line.comment = strstr(l, "//");
         if (line.comment) {
@@ -1283,7 +1283,7 @@ bool cert::parse()  // parse orgmsg[] and check the signature
                           "signed-by")) {  // parse "signed-by" key directly
             if (!(strlen(line.val) == 64 && (signedby = (uchar *)line.val) &&
                   hex2bin(signedby, orgmsg + (line.val - workmsg), 32) == 32))
-              signedby = NULL;
+              signedby = nullptr;
           } else if (!strcasecmp(
                          line.key,
                          "signed-date")) {  // parse "signed-date" key directly
@@ -1292,7 +1292,7 @@ bool cert::parse()  // parse orgmsg[] and check the signature
                                  "pubkey")) {  // parse "pubkey" key directly
             if (!(strlen(line.val) == 64 && (pubkey = (uchar *)line.val) &&
                   hex2bin(pubkey, orgmsg + (line.val - workmsg), 32) == 32))
-              pubkey = NULL;
+              pubkey = nullptr;
           } else if (!strcasecmp(line.key,
                                  "name")) {  // parse "name" key directly
             name = line.val;
@@ -1327,16 +1327,16 @@ bool cert::parse()  // parse orgmsg[] and check the signature
 
 struct certline *cert::getline(const char *key) {
   loopv(lines) if (!strcasecmp(lines[i].key, key)) return &lines[i];
-  return NULL;
+  return nullptr;
 }
 
 const char *cert::getval(const char *key) {
   loopv(lines) if (!strcasecmp(lines[i].key, key)) return lines[i].val;
-  return NULL;
+  return nullptr;
 }
 
 char *cert::getcertfilename(const char *subpath) {
-  if (!orgfilename) return NULL;
+  if (!orgfilename) return nullptr;
   defformatstring(s)(CERTFILEDIR "%s%s%s." CERTFILEEXT, subpath ? subpath : "",
                      subpath ? PATHDIVS : "", orgfilename);
   return newstring(s);
@@ -1351,7 +1351,7 @@ char *cert::getnewcertfilename(const char *subpath) {
   return newstring(s);
 }
 void cert::movecertfile(const char *subpath) {
-  char *ofn = getcertfilename(NULL), *nfn = getcertfilename(subpath);
+  char *ofn = getcertfilename(nullptr), *nfn = getcertfilename(subpath);
   if (subpath && ofn && nfn) backup(ofn, nfn);
   DELSTRING(ofn);
   DELSTRING(nfn);
@@ -1360,7 +1360,7 @@ void cert::movecertfile(const char *subpath) {
 makecert::makecert(int bufsize) {
   curbuf = buf = new char[1 << bufsize];
   endbuf = buf + (1 << bufsize) - 1;
-  c = new cert(NULL);
+  c = new cert(nullptr);
 }
 
 makecert::~makecert() {
@@ -1402,9 +1402,9 @@ char *makecert::sign(const uchar *keypair, const char *com) {
              timestring("%c"));
   int len = msg.length();
   loopi(64) msg.add(0);  // make room for the signature
-  uchar *msgbuf = (uchar *)msg.getbuf();
-  ed25519_sign(msgbuf, NULL, msgbuf, len, keypair);
-  char *signedmsg = new char[certheaderlenfull + len + 1];
+  auto *msgbuf = (uchar *)msg.getbuf();
+  ed25519_sign(msgbuf, nullptr, msgbuf, len, keypair);
+  auto *signedmsg = new char[certheaderlenfull + len + 1];
   sprintf(signedmsg, "%s%s\n", certheader,
           bin2hex(hextemp, msgbuf, 64));                    // header line
   memcpy(signedmsg + certheaderlenfull, msgbuf + 64, len);  // body
@@ -1481,12 +1481,12 @@ void rebuildcerttree()  // determines the rank of all certs; ages them; removes
 {
   int act = aktcerttime();
   cert *treechain =
-      NULL;  // all nested list searches are done on a chain of relevant certs,
+      nullptr;  // all nested list searches are done on a chain of relevant certs,
              // to keep complexity from reaching n^2
   loopv(certs)  // 1st run: cleanup, age, check if signed by root
   {
     cert *c = certs[i];
-    c->parent = c->next = NULL;
+    c->parent = c->next = nullptr;
     c->rank = !memcmp(rootcert, c->signedby, 32) ? 1 : 0;
     c->superseded = false;
     c->days2expire = c->days2renew = 365;
@@ -1542,7 +1542,7 @@ void rebuildcerttree()  // determines the rank of all certs; ages them; removes
     marksuperseded(treechain);
     if (!onemoreround) break;
   }  // tree itself is now complete and valid - clean up the rest a bit
-  treechain = NULL;
+  treechain = nullptr;
   loopv(certs) {
     cert *c = certs[i];
     if (c->isvalid && !c->rank) {
@@ -1572,7 +1572,7 @@ void rebuildcerttree()  // determines the rank of all certs; ages them; removes
 }
 
 void loadcert(const char *fname) {
-  cert *c = new cert(fname);
+  auto *c = new cert(fname);
   if (c->ischecked && c->name) {
     certs.add(c);  // certs in "certs" are required to have a name
     DEBUG("loaded cert " << c->name << ", type " << certtypekeywords[c->type]

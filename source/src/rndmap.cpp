@@ -28,9 +28,9 @@ float interpolate(float a, float b, float x) {
 }
 
 float interpolatednoise(float x, float y, int seed) {
-  int ix = (int)x;
+  auto ix = (int)x;
   float fx = x - ix;
-  int iy = (int)y;
+  auto iy = (int)y;
   float fy = y - iy;
   float v1 = smoothednoise(ix, iy, seed);
   float v2 = smoothednoise(ix + 1, iy, seed);
@@ -45,8 +45,8 @@ float perlinnoise_2D(float x, float y, int seedstep, float pers) {
   float total = 0;
   int seed = 0;
   for (int i = 0; i < 7; i++) {
-    float frequency = (float)(2 ^ i);
-    float amplitude = (float)pow(pers, i);
+    auto frequency = (float)(2 ^ i);
+    auto amplitude = (float)pow(pers, i);
     total += interpolatednoise(x * frequency, y * frequency, seed) * amplitude;
     seed += seedstep;
   }

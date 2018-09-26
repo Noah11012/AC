@@ -7,10 +7,10 @@ void renderdocsection(void *menu, bool init);
 extern hashtable<const char *, ident> *idents;
 
 struct docargument {
-  char *token, *desc, *values;
+  char *token{NULL}, *desc{NULL}, *values{NULL};
   bool vararg;
 
-  docargument() : token(NULL), desc(NULL), values(NULL){};
+  docargument()  {};
   ~docargument() {
     DELETEA(token);
     DELETEA(desc);
@@ -19,9 +19,9 @@ struct docargument {
 };
 
 struct docexample {
-  char *code, *explanation;
+  char *code{NULL}, *explanation{NULL};
 
-  docexample() : code(NULL), explanation(NULL) {}
+  docexample()  {}
   ~docexample() {
     DELETEA(code);
     DELETEA(explanation);
@@ -29,16 +29,16 @@ struct docexample {
 };
 
 struct docident {
-  char *name, *desc;
+  char *name{NULL}, *desc{NULL};
   vector<docargument> arguments;
   vector<char *> remarks;
   vector<char *> references;
   vector<docexample> examples;
   vector<char *> keylines;
   int a, b, c;
-  char *label, *related;
+  char *label{NULL}, *related{NULL};
 
-  docident() : name(NULL), desc(NULL), label(NULL), related(NULL) {}
+  docident()  {}
   ~docident() {
     DELETEA(name);
     DELETEA(desc);
@@ -48,11 +48,11 @@ struct docident {
 };
 
 struct docsection {
-  char *name;
+  char *name{NULL};
   vector<docident *> sidents;
   void *menu;
 
-  docsection() : name(NULL){};
+  docsection()  {};
   ~docsection() { DELETEA(name); }
 };
 
@@ -60,24 +60,24 @@ vector<docsection> sections;
 hashtable<const char *, docident>
     docidents;  // manage globally instead of a section tree to ensure
                 // uniqueness
-docsection *lastsection = NULL;
-docident *lastident = NULL;
+docsection *lastsection = nullptr;
+docident *lastident = nullptr;
 
 void adddocsection(char *name) {
   if (!name || !*name) {
-    lastsection = NULL;
+    lastsection = nullptr;
     return;
   }
   docsection &s = sections.add();
   s.name = newstring(name);
-  s.menu = addmenu(s.name, NULL, true, renderdocsection);
+  s.menu = addmenu(s.name, nullptr, true, renderdocsection);
   lastsection = &s;
 }
 COMMANDN(docsection, adddocsection, "s");
 
 void adddocident(char *name, char *desc) {
   if (!name || !desc || !lastsection || !*name) {
-    lastident = NULL;
+    lastident = nullptr;
     return;
   }
   name = newstring(name);
@@ -102,7 +102,7 @@ void adddocargument(char *token, char *desc, char *values, char *vararg) {
   docargument &a = lastident->arguments.add();
   a.token = newstring(token);
   a.desc = newstring(desc);
-  a.values = values && strlen(values) ? newstring(values) : NULL;
+  a.values = values && strlen(values) ? newstring(values) : nullptr;
   a.vararg = vararg && atoi(vararg) == 1 ? true : false;
 }
 COMMANDN(docargument, adddocargument, "ssss");
@@ -132,7 +132,7 @@ void adddocexample(char *code, char *explanation) {
   docexample &e = lastident->examples.add();
   e.code = newstring(code);
   e.explanation =
-      explanation && strlen(explanation) ? newstring(explanation) : NULL;
+      explanation && strlen(explanation) ? newstring(explanation) : nullptr;
 }
 COMMANDN(docexample, adddocexample, "ss");
 
@@ -145,12 +145,12 @@ COMMANDN(dockey, adddockey, "sss");
 
 const char *docgetdesc(const char *name) {
   docident *id = docidents.access(name);
-  return id ? id->desc : NULL;
+  return id ? id->desc : nullptr;
 }
 
-char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = NULL) {
-  char *r = NULL;
-  loopv(cvec) if (cvec[i]) if ((r = strstr(cvec[i], substr)) != NULL) {
+char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = nullptr) {
+  char *r = nullptr;
+  loopv(cvec) if (cvec[i]) if ((r = strstr(cvec[i], substr)) != nullptr) {
     if (rline) *rline = i;
     break;
   }
@@ -173,7 +173,7 @@ void listundoneidents(vector<const char *> &inames, int allidents) {
           srch.add(id->arguments[j].values);
         }
         loopvj(id->references) srch.add(id->references[j]);
-        if (cvecstr(srch, "TODO") || cvecstr(srch, "UNDONE")) id = NULL;
+        if (cvecstr(srch, "TODO") || cvecstr(srch, "UNDONE")) id = nullptr;
       }
       if (!id) inames.add(name);
     }
@@ -264,7 +264,7 @@ void getdoc(char *name, int *line) {
 COMMAND(getdoc, "si");
 
 char *xmlstringenc(char *d, const char *s, size_t len) {
-  if (!d || !s) return NULL;
+  if (!d || !s) return nullptr;
   struct spchar {
     char c;
     char repl[8];
@@ -421,7 +421,7 @@ int docs_parsecmd(const char *p, const char *pos, const char *w[MAXWORDS],
   {
     int nargs = MAXWORDS, curarg = -1;
     loopi(MAXWORDS) {
-      w[i] = NULL;
+      w[i] = nullptr;
       wl[i] = 0;
       if (i > nargs) continue;
       w[i] = (p += strspn(p, " \t"));  // skip whitespace
@@ -459,7 +459,7 @@ int docs_parsecmd(const char *p, const char *pos, const char *w[MAXWORDS],
         p += strcspn(p, "; \t\n\r\0");  // skip regular word
       if (i < 0) continue;
       if (!(wl[i] = (int)(p - w[i])))
-        w[i] = NULL, nargs = i;
+        w[i] = nullptr, nargs = i;
       else if (w[i] <= pos)
         curarg = i - 1;
     }
@@ -480,7 +480,7 @@ void renderdoc(int x, int y, int doch) {
 
   const char *pos = exp + (cmdpos < 0 ? strlen(exp) : cmdpos), *w[MAXWORDS];
   int wl[MAXWORDS], carg, unmatched = 0;
-  docident *curident = NULL;
+  docident *curident = nullptr;
   string buf;
   loopi(2)  // two scan passes, first one retries on unmatched braces
   {
@@ -701,7 +701,7 @@ void renderdoc(int x, int y, int doch) {
   draw_text("\f4disable doc reference (F1)", x, y + doch + 2 * FONTH);
 }
 
-void *docmenu = NULL;
+void *docmenu = nullptr;
 
 struct msection {
   char *name, *desc;
@@ -727,7 +727,7 @@ void renderdocsection(void *menu, bool init) {
     msections.sort(msectionsort);
     menureset(menu);
     loopv(msections) {
-      menuitemmanual(menu, msections[i].name, msections[i].cmd, NULL,
+      menuitemmanual(menu, msections[i].name, msections[i].cmd, nullptr,
                      msections[i].desc);
     }
     return;

@@ -8,24 +8,24 @@
 
 static size_t oggcallbackread(void *ptr, size_t size, size_t nmemb,
                               void *datasource) {
-  stream *s = (stream *)datasource;
+  auto *s = (stream *)datasource;
   return s ? s->read(ptr, int(size * nmemb)) / size : 0;
 }
 
 static int oggcallbackseek(void *datasource, ogg_int64_t offset, int whence) {
-  stream *s = (stream *)datasource;
+  auto *s = (stream *)datasource;
   return s && s->seek(long(offset), whence) ? 0 : -1;
 }
 
 static int oggcallbackclose(void *datasource) {
-  stream *s = (stream *)datasource;
+  auto *s = (stream *)datasource;
   if (!s) return -1;
   delete s;
   return 0;
 }
 
 static long oggcallbacktell(void *datasource) {
-  stream *s = (stream *)datasource;
+  auto *s = (stream *)datasource;
   return s ? s->tell() : -1;
 }
 
@@ -34,7 +34,7 @@ ov_callbacks oggcallbacks = {oggcallbackread, oggcallbackseek, oggcallbackclose,
 
 // ogg audio streaming
 
-oggstream::oggstream() : valid(false), isopen(false), src(NULL) {
+oggstream::oggstream() : valid(false), isopen(false), src(nullptr) {
   reset();
 
   // grab a source and keep it during the whole lifetime
@@ -45,7 +45,7 @@ oggstream::oggstream() : valid(false), isopen(false), src(NULL) {
       src->sourcerelative(true);
     } else {
       sourcescheduler::instance().releasesource(src);
-      src = NULL;
+      src = nullptr;
     }
   }
 
@@ -83,7 +83,7 @@ void oggstream::reset() {
   if (isopen) {
     isopen = !ov_clear(&oggfile);
   }
-  info = NULL;
+  info = nullptr;
   totalseconds = 0.0f;
 
   // default settings
@@ -105,7 +105,7 @@ bool oggstream::open(const char *f) {
     ::stream *file = openfile(path(filepath), "rb");
     if (!file) continue;
 
-    isopen = !ov_open_callbacks(file, &oggfile, NULL, 0, oggcallbacks);
+    isopen = !ov_open_callbacks(file, &oggfile, nullptr, 0, oggcallbacks);
     if (!isopen) {
       delete file;
       continue;
@@ -127,7 +127,7 @@ void oggstream::onsourcereassign(source *s) {
   ASSERT(0);
   if (src && src == s) {
     reset();
-    src = NULL;
+    src = nullptr;
   }
 }
 

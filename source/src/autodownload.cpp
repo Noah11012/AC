@@ -25,7 +25,7 @@ VARP(autodownload, 0, 1, 1);
 VAR(autodownloaddebug, 0, 0, 1);
 
 sl_semaphore sem_pckservers(1,
-                            NULL);  // control access to the pckservers vector
+                            nullptr);  // control access to the pckservers vector
 
 void resetpckservers() {
   delfile(findfile("config" PATHDIVS "pcksources.cfg", "w"));
@@ -39,7 +39,7 @@ void addpckserver(char *host, char *priority)  // add/adjust a package server
 {
   sem_pckservers.wait();
   if (*host) {
-    pckserver *s = NULL;
+    pckserver *s = nullptr;
     loopv(pckservers) if (!strcmp(host, pckservers[i]->host)) s = pckservers[i];
     DEBUG((s ? "updated" : "new")
           << " host " << host << ", priority " << priority);
@@ -79,7 +79,7 @@ int pingpckserver(
 {
   httpget h;
   urlparse u;
-  pckserver *s = (pckserver *)data;
+  auto *s = (pckserver *)data;
   u.set(s->host);
   s->resolved = h.set_host(u.domain) ? 1 : 0;
   SDL_mutexP(pckpinglog_lock);
@@ -183,7 +183,7 @@ int pingallpckservers(void *data) {
   return 0;
 }
 
-SDL_Thread *pingallpckthread = NULL;
+SDL_Thread *pingallpckthread = nullptr;
 
 void setupautodownload() {
   // fetch updates from all configured servers
@@ -220,7 +220,7 @@ void pollautodownloadresponse()  // thread-safe feedback from the
     SDL_WaitThread(pingallpckthread,
                    &nop);  // detaching the thread would be preferrable, but
                            // SDL 1.2 doesn't provide that
-    pingallpckthread = NULL;
+    pingallpckthread = nullptr;
   }
 }
 
@@ -230,8 +230,8 @@ const char *mmexts[] = {".md2", ".md3", ".cfg", ".txt", ".jpg", ".png", ""},
                         "_dn.jpg", "_up.jpg", "_license.txt", ""};
 
 bool requirepackage(int type, const char *name, const char *host) {
-  const char *prefix = NULL, *checkprefix = NULL, *forceext = NULL;
-  package *pck = new package;
+  const char *prefix = nullptr, *checkprefix = nullptr, *forceext = nullptr;
+  auto *pck = new package;
   switch (type) {
     case PCK_AUDIO:
       prefix = "packages/audio/";
@@ -289,7 +289,7 @@ bool requirepackage(int type, const char *name, const char *host) {
   }
   if (forceext && strlen(pck->name) > strlen(forceext) &&
       !strcmp(pck->name + strlen(pck->name) - strlen(forceext), forceext))
-    forceext = NULL;  // filename already has required extension
+    forceext = nullptr;  // filename already has required extension
   formatstring(pck->fullpath)("%s%s%s", prefix ? prefix : "", pck->name,
                               forceext ? forceext : "");
   formatstring(pck->requestname)(
@@ -340,7 +340,7 @@ void processdownload(package *pck,
             formatstring(filename)("%s%s", pck->fullpath, pck->exts[n]);
             isok = !strcmp(behindpath(filename), zname);
           } else {  // any name with listed extension, written to subdirectory
-            int zlen = (int)strlen(zname), elen = (int)strlen(pck->exts[n]);
+            auto zlen = (int)strlen(zname), elen = (int)strlen(pck->exts[n]);
             if ((isok = (zlen > elen &&
                          !strcmp(zname + zlen - elen, pck->exts[n]))))
               formatstring(filename)("%s/%s", pck->fullpath, zname);
@@ -427,7 +427,7 @@ bool dlpackage(httpget &h, package *pck,
   progress_n = progress_of - pendingpackages.length();
   if (*u.domain && h.set_host(u.domain)) {
     if (*u.port) h.set_port(atoi(u.port));
-    h.outstream = openvecfile(NULL);
+    h.outstream = openvecfile(nullptr);
     defformatstring(url)("%s%s", u.path, pck->requestname);
     int got = h.get(url, 6000, 90000);
     if (got < 0 || !h.response) {
@@ -443,7 +443,7 @@ bool dlpackage(httpget &h, package *pck,
                              u.domain, h.ip.port, url, got, h.contentlength,
                              h.elapsedtime));
         processdownload(pck, h.outstream);
-        h.outstream = NULL;  // deleted by processdownload()
+        h.outstream = nullptr;  // deleted by processdownload()
         return true;
       } else
         clientlogf("download %s:%d%s failed, server response %d%s%s", u.domain,
@@ -497,7 +497,7 @@ int downloadpackages(bool loadscr)  // get all pending packages
   pckservers.sort(pckserversort);
   loopv(pendingpackages) {
     package *pck = pendingpackages[i];
-    int maxrev = 0, *rev = NULL;
+    int maxrev = 0, *rev = nullptr;
     pck->server = -1;  // server with highest revision for that content
     loopvj(pckservers) {
       pckserver *s = pckservers[j];
@@ -555,7 +555,7 @@ int downloadpackages(bool loadscr)  // get all pending packages
   pendingpackages.sort(packagesort_host);
   loopvrev(pendingpackages) {
     package *pck = pendingpackages[i];
-    if (!canceldownloads && !dlpackage(h, pck, NULL)) {
+    if (!canceldownloads && !dlpackage(h, pck, nullptr)) {
       conoutf("\f3failed to load %s from %s, giving up", pck->name, pck->host);
       failed = true;
     }

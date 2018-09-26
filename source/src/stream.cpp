@@ -50,7 +50,7 @@ char *path(char *s) {
       memmove(t, t + d, strlen(t + d) + 1);  // remove multiple path delimiters
   }
   // collapse ".."-parts
-  for (char *prevdir = NULL, *curdir = s;;) {
+  for (char *prevdir = nullptr, *curdir = s;;) {
     prevdir = curdir[0] == PATHDIV ? curdir + 1 : curdir;
     curdir = strchr(prevdir, PATHDIV);
     if (!curdir) break;
@@ -266,7 +266,7 @@ bool listsubdir(const char *dir, vector<char *> &subdirs) {
   DIR *d = opendir(path(pathname));
   if (d) {
     struct dirent *de, b;
-    while (!readdir_r(d, &b, &de) && de != NULL) {
+    while (!readdir_r(d, &b, &de) && de != nullptr) {
 #ifdef _DIRENT_HAVE_D_TYPE
       if (de->d_type == DT_DIR && de->d_name[0] != '.')
         subdirs.add(newstring(de->d_name));
@@ -274,7 +274,7 @@ bool listsubdir(const char *dir, vector<char *> &subdirs) {
 #endif
       {
         struct stat s;
-        int dl = (int)strlen(pathname);
+        auto dl = (int)strlen(pathname);
         concatformatstring(pathname, "/%s", de->d_name);
         if (!lstat(pathname, &s) && S_ISDIR(s.st_mode) && de->d_name[0] != '.')
           subdirs.add(newstring(de->d_name));
@@ -331,7 +331,7 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files) {
   DIR *d = opendir(path(pathname));
   if (d) {
     struct dirent *de, b;
-    while (!readdir_r(d, &b, &de) && de != NULL) {
+    while (!readdir_r(d, &b, &de) && de != nullptr) {
       bool isreg = false;
 #ifdef _DIRENT_HAVE_D_TYPE
       if (de->d_type == DT_REG)
@@ -340,7 +340,7 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files) {
 #endif
       {
         struct stat s;
-        int dl = (int)strlen(pathname);
+        auto dl = (int)strlen(pathname);
         concatformatstring(pathname, "/%s", de->d_name);
         isreg = !lstat(pathname, &s) && S_ISREG(s.st_mode);
         pathname[dl] = '\0';
@@ -402,7 +402,7 @@ void listfilesrecursive(const char *dir, vector<char *> &files, int level) {
     }
     delstring(dirs[i]);
   }
-  listfiles(dir, NULL, thisdir);
+  listfiles(dir, nullptr, thisdir);
   loopv(thisdir) {
     defformatstring(name)("%s/%s", dir, thisdir[i]);
     files.add(newstring(name));
@@ -441,19 +441,19 @@ void backup(char *name, char *backupname) {
 
 #ifndef STANDALONE
 static int rwopsseek(SDL_RWops *rw, int offset, int whence) {
-  stream *f = (stream *)rw->hidden.unknown.data1;
+  auto *f = (stream *)rw->hidden.unknown.data1;
   if ((!offset && whence == SEEK_CUR) || f->seek(offset, whence))
     return f->tell();
   return -1;
 }
 
 static int rwopsread(SDL_RWops *rw, void *buf, int size, int nmemb) {
-  stream *f = (stream *)rw->hidden.unknown.data1;
+  auto *f = (stream *)rw->hidden.unknown.data1;
   return f->read(buf, size * nmemb) / size;
 }
 
 static int rwopswrite(SDL_RWops *rw, const void *buf, int size, int nmemb) {
-  stream *f = (stream *)rw->hidden.unknown.data1;
+  auto *f = (stream *)rw->hidden.unknown.data1;
   return f->write(buf, size * nmemb) / size;
 }
 
@@ -461,7 +461,7 @@ static int rwopsclose(SDL_RWops *rw) { return 0; }
 
 SDL_RWops *stream::rwops() {
   SDL_RWops *rw = SDL_AllocRW();
-  if (!rw) return NULL;
+  if (!rw) return nullptr;
   rw->hidden.unknown.data1 = this;
   rw->seek = rwopsseek;
   rw->read = rwopsread;
@@ -498,10 +498,10 @@ const int64_t MINFSSIZE = 50000000;  // 50MB
 #endif
 
 struct filestream : stream {
-  FILE *file;
+  FILE *file{NULL};
 
-  filestream() : file(NULL) {}
-  ~filestream() { close(); }
+  filestream()  {}
+  ~filestream() override { close(); }
 
   bool open(const char *name, const char *mode) {
     if (file) return false;
@@ -516,7 +516,7 @@ struct filestream : stream {
       }
     }
 #endif
-    return file != NULL;
+    return file != nullptr;
   }
 
   bool opentemp(const char *name, const char *mode) {
@@ -526,32 +526,32 @@ struct filestream : stream {
 #else
     file = tmpfile();
 #endif
-    return file != NULL;
+    return file != nullptr;
   }
 
-  void close() {
+  void close() override {
     if (file) {
       fclose(file);
-      file = NULL;
+      file = nullptr;
     }
   }
 
-  bool end() { return feof(file) != 0; }
-  long tell() { return ftell(file); }
-  bool seek(long offset, int whence) {
+  bool end() override { return feof(file) != 0; }
+  long tell() override { return ftell(file); }
+  bool seek(long offset, int whence) override {
     return fseek(file, offset, whence) >= 0;
   }
-  void fflush() {
+  void fflush() override {
     if (file) ::fflush(file);
   }
-  int read(void *buf, int len) { return (int)fread(buf, 1, len, file); }
-  int write(const void *buf, int len) { return (int)fwrite(buf, 1, len, file); }
-  int getchar() { return fgetc(file); }
-  bool putchar(int c) { return fputc(c, file) != EOF; }
-  bool getline(char *str, int len) { return fgets(str, len, file) != NULL; }
-  bool putstring(const char *str) { return fputs(str, file) != EOF; }
+  int read(void *buf, int len) override { return (int)fread(buf, 1, len, file); }
+  int write(const void *buf, int len) override { return (int)fwrite(buf, 1, len, file); }
+  int getchar() override { return fgetc(file); }
+  bool putchar(int c) override { return fputc(c, file) != EOF; }
+  bool getline(char *str, int len) override { return fgets(str, len, file) != nullptr; }
+  bool putstring(const char *str) override { return fputs(str, file) != EOF; }
 
-  int printf(const char *fmt, ...) {
+  int printf(const char *fmt, ...) override {
     va_list v;
     va_start(v, fmt);
     int result = vfprintf(file, fmt, v);
@@ -577,29 +577,24 @@ struct gzstream : stream {
     F_RESERVED = 0xE0
   };
 
-  stream *file;
+  stream *file{NULL};
   z_stream zfile;
-  uchar *buf;
-  bool reading, writing, autoclose;
-  uint crc;
-  int headersize;
+  uchar *buf{NULL};
+  bool reading{false}, writing{false}, autoclose{false};
+  uint crc{0};
+  int headersize{0};
 
   gzstream()
-      : file(NULL),
-        buf(NULL),
-        reading(false),
-        writing(false),
-        autoclose(false),
-        crc(0),
-        headersize(0) {
-    zfile.zalloc = NULL;
-    zfile.zfree = NULL;
-    zfile.opaque = NULL;
-    zfile.next_in = zfile.next_out = NULL;
+      
+        {
+    zfile.zalloc = nullptr;
+    zfile.zfree = nullptr;
+    zfile.opaque = nullptr;
+    zfile.next_in = zfile.next_out = nullptr;
     zfile.avail_in = zfile.avail_out = 0;
   }
 
-  ~gzstream() { close(); }
+  ~gzstream() override { close(); }
 
   void writeheader() {
     uchar header[] = {MAGIC1, MAGIC2, Z_DEFLATED, 0, 0, 0, 0, 0, 0, OS_UNIX};
@@ -676,13 +671,13 @@ struct gzstream : stream {
 
     autoclose = needclose;
     file = f;
-    crc = crc32(0, NULL, 0);
+    crc = crc32(0, nullptr, 0);
     buf = new uchar[BUFSIZE];
 
     if (reading) {
       if (!checkheader()) {
         stopreading();
-        file = NULL;
+        file = nullptr;
         return false;
       }
     } else if (writing)
@@ -690,7 +685,7 @@ struct gzstream : stream {
     return true;
   }
 
-  uint getcrc() { return crc; }
+  uint getcrc() override { return crc; }
 
   void finishreading() {
     if (!reading) return;
@@ -739,7 +734,7 @@ struct gzstream : stream {
     writing = false;
   }
 
-  void close() {
+  void close() override {
     if (reading) finishreading();
     stopreading();
     if (writing) finishwriting();
@@ -748,12 +743,12 @@ struct gzstream : stream {
     if (autoclose) DELETEP(file);
   }
 
-  bool end() { return !reading && !writing; }
-  long tell() {
+  bool end() override { return !reading && !writing; }
+  long tell() override {
     return reading ? zfile.total_out : (writing ? zfile.total_in : -1);
   }
 
-  bool seek(long offset, int whence) {
+  bool seek(long offset, int whence) override {
     if (writing || !reading) return false;
 
     if (whence == SEEK_END) {
@@ -774,10 +769,10 @@ struct gzstream : stream {
         zfile.next_in -= zfile.total_in;
       } else {
         zfile.avail_in = 0;
-        zfile.next_in = NULL;
+        zfile.next_in = nullptr;
       }
       inflateReset(&zfile);
-      crc = crc32(0, NULL, 0);
+      crc = crc32(0, nullptr, 0);
     }
 
     uchar skip[512];
@@ -793,7 +788,7 @@ struct gzstream : stream {
     return true;
   }
 
-  int read(void *buf, int len) {
+  int read(void *buf, int len) override {
     if (!reading || !buf || !len) return 0;
     zfile.next_out = (Bytef *)buf;
     zfile.avail_out = len;
@@ -831,7 +826,7 @@ struct gzstream : stream {
     return true;
   }
 
-  int write(const void *buf, int len) {
+  int write(const void *buf, int len) override {
     if (!writing || !buf || !len) return 0;
     zfile.next_in = (Bytef *)buf;
     zfile.avail_in = len;
@@ -858,18 +853,18 @@ struct vecstream : stream {
 
   vecstream(vector<uchar> *s, bool autodelete)
       : data(s), pointer(0), autodelete(autodelete) {}
-  ~vecstream() {
+  ~vecstream() override {
     if (autodelete) {
       DELETEP(data);
     }
   }
 
-  void close() { DELETEP(data); }
-  bool end() { return data ? pointer >= data->length() : true; }
-  long tell() { return data ? pointer : -1; }
-  long size() { return data ? data->length() : -1; }
+  void close() override { DELETEP(data); }
+  bool end() override { return data ? pointer >= data->length() : true; }
+  long tell() override { return data ? pointer : -1; }
+  long size() override { return data ? data->length() : -1; }
 
-  bool seek(long offset, int whence) {
+  bool seek(long offset, int whence) override {
     int newpointer = -1;
     if (data) switch (whence) {
         case SEEK_SET:
@@ -890,7 +885,7 @@ struct vecstream : stream {
     return false;
   }
 
-  int read(void *buf, int len) {
+  int read(void *buf, int len) override {
     int got = 0;
     if (data && data->inrange(pointer)) {
       got = min(len, data->length() - pointer);
@@ -900,7 +895,7 @@ struct vecstream : stream {
     return got;
   }
 
-  int write(const void *buf, int len) {
+  int write(const void *buf, int len) override {
     if (data) {
       while (data->length() < pointer + len) data->add(0);
       memcpy(data->getbuf() + pointer, buf, len);
@@ -910,7 +905,7 @@ struct vecstream : stream {
     return len;
   }
 
-  int printf(const char *fmt, ...)  // limited to MAXSTRLEN
+  int printf(const char *fmt, ...) override  // limited to MAXSTRLEN
   {
     int len = 0;
     if (data) {
@@ -932,21 +927,21 @@ struct memstream : stream {
       : data(s), memsize(size), pointer(0), refcount(refcnt) {
     if (refcnt) (*refcnt)++;
   }
-  ~memstream() { close(); }
+  ~memstream() override { close(); }
 
-  void close() {
+  void close() override {
     if (data && refcount) {
       (*refcount)--;
-      data = NULL;
+      data = nullptr;
     } else
       DELETEA(data);
     memsize = -1;
   }
-  bool end() { return data ? pointer >= memsize : true; }
-  long tell() { return data ? pointer : -1; }
-  long size() { return data ? memsize : -1; }
+  bool end() override { return data ? pointer >= memsize : true; }
+  long tell() override { return data ? pointer : -1; }
+  long size() override { return data ? memsize : -1; }
 
-  bool seek(long offset, int whence) {
+  bool seek(long offset, int whence) override {
     int newpointer = -1;
     if (data) switch (whence) {
         case SEEK_SET:
@@ -967,7 +962,7 @@ struct memstream : stream {
     return false;
   }
 
-  int read(void *buf, int len) {
+  int read(void *buf, int len) override {
     int got = 0;
     if (data && pointer >= 0 && pointer < memsize) {
       got = min(len, memsize - pointer);
@@ -991,14 +986,14 @@ stream *openrawfile(const char *filename, const char *mode) {
   if (mode && (mode[0] == 'w' || mode[0] == 'a'))
     conoutf("writing to file: %s", filename);
 #endif
-  if (!strncmp(filename, "zip://", 6)) return NULL;
-  filestream *file = new filestream;
+  if (!strncmp(filename, "zip://", 6)) return nullptr;
+  auto *file = new filestream;
   if (!file->open(filename, mode)) {
 #ifndef STANDALONE
 //         conoutf("file failure! %s",filename);
 #endif
     delete file;
-    return NULL;
+    return nullptr;
   }
   return file;
 }
@@ -1021,10 +1016,10 @@ int getfilesize(const char *filename) {
 
 stream *opentempfile(const char *name, const char *mode) {
   const char *found = findfile(name, mode);
-  filestream *file = new filestream;
+  auto *file = new filestream;
   if (!file->opentemp(found ? found : name, mode)) {
     delete file;
-    return NULL;
+    return nullptr;
   }
   return file;
 }
@@ -1032,37 +1027,37 @@ stream *opentempfile(const char *name, const char *mode) {
 stream *opengzfile(const char *filename, const char *mode, stream *file,
                    int level) {
   stream *source = file ? file : openfile(filename, mode);
-  if (!source) return NULL;
-  gzstream *gz = new gzstream;
+  if (!source) return nullptr;
+  auto *gz = new gzstream;
   if (!gz->open(source, mode, !file, level)) {
     if (!file) delete source;
     delete gz;
-    return NULL;
+    return nullptr;
   }
   return gz;
 }
 
 char *loadfile(const char *fn, int *size, const char *mode) {
   stream *f = openfile(fn, mode ? mode : "rb");
-  if (!f) return NULL;
+  if (!f) return nullptr;
   int len = f->size();
   if (len <= 0) {
     delete f;
-    return NULL;
+    return nullptr;
   }
-  char *buf = new char[len + 1];
+  auto *buf = new char[len + 1];
   if (!buf) {
     delete f;
-    return NULL;
+    return nullptr;
   }
   buf[len] = 0;
   int rlen = f->read(buf, len);
   delete f;
   if (len != rlen && (!mode || strchr(mode, 'b'))) {
     delete[] buf;
-    return NULL;
+    return nullptr;
   }
-  if (size != NULL) *size = len;
+  if (size != nullptr) *size = len;
   return buf;
 }
 

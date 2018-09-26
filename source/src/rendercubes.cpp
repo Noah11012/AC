@@ -78,7 +78,7 @@ void renderstrips() {
 }
 
 void addstrip(int type, int tex, int start, int n) {
-  stripbatch *sb = NULL;
+  stripbatch *sb = nullptr;
   if (tex == DEFAULT_SKY) {
     if (minimap) return;
     sb = &skystrips;
@@ -241,11 +241,11 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l4,
       verts.setsize(verts.length() - 2);
       nquads--;
     } else {
-      uchar *p1 = (uchar *)(&verts[verts.length() - 1].r);
+      auto *p1 = (uchar *)(&verts[verts.length() - 1].r);
       ol1r = p1[0];
       ol1g = p1[1];
       ol1b = p1[2];
-      uchar *p2 = (uchar *)(&verts[verts.length() - 2].r);
+      auto *p2 = (uchar *)(&verts[verts.length() - 2].r);
       ol2r = p2[0];
       ol2g = p2[1];
       ol2b = p2[2];
@@ -397,7 +397,7 @@ void render_square(int wtex, float floor1, float floor2, float ceil1,
       verts.setsize(verts.length() - 2);
       nquads--;
     } else {
-      uchar *p1 = (uchar *)(&verts[verts.length() - 1].r);
+      auto *p1 = (uchar *)(&verts[verts.length() - 1].r);
       ol1r = p1[0];
       ol1g = p1[1];
       ol1b = p1[2];
@@ -566,7 +566,7 @@ void rendershadow(int x, int y, int xs, int ys, const vec &texgenS,
         sqr *t = SW(s, 1, 0), *v = SW(s, 0, 1), *w = SW(s, 0, -1),
             *z = SW(s, -1, 0);
         bool topleft = true;
-        sqr *h1 = NULL, *h2 = NULL;
+        sqr *h1 = nullptr, *h2 = nullptr;
         if (SOLID(z)) {
           if (SOLID(w)) {
             h2 = s;

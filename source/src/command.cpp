@@ -23,14 +23,14 @@ char *exchangestr(char *o, const char *n) {
 vector<const char *>
     executionstack;  // keep history of recursive command execution (to write to
                      // log in case of a crash)
-char *commandret = NULL;
+char *commandret = nullptr;
 
 bool loop_break = false,
      loop_skip = false;  // break or continue (skip) current loop
 int loop_level = 0;      // avoid bad calls of break & continue
 
 hashtable<const char *, ident> *idents =
-    NULL;  // contains ALL vars/commands/aliases
+    nullptr;  // contains ALL vars/commands/aliases
 
 bool persistidents = false;
 bool currentcontextisolated = false;  // true for map and model config files
@@ -62,7 +62,7 @@ void pushident(ident &id, char *val, int context = execcontext) {
       return;
     }
   }
-  identstack *stack = new identstack;
+  auto *stack = new identstack;
   stack->action = id.executing == id.action ? newstring(id.action) : id.action;
   stack->context = id.context;
   stack->next = id.stack;
@@ -239,11 +239,11 @@ void setsvar(const char *name, const char *str, bool dofunc) {
     ((void(__cdecl *)())id->fun)();  // call trigger function if available
 }
 
-bool identexists(const char *name) { return idents->access(name) != NULL; }
+bool identexists(const char *name) { return idents->access(name) != nullptr; }
 
 const char *getalias(const char *name) {
   ident *i = idents->access(name);
-  return i && i->type == ID_ALIAS ? i->action : NULL;
+  return i && i->type == ID_ALIAS ? i->action : nullptr;
 }
 void _getalias(char *name) {
   string o = "";
@@ -276,7 +276,7 @@ void getvarrange(char *_what, char *name) {
   const char *attrs[] = {"min", "max", "default", ""};
   int what = getlistindex(_what, attrs, false, -1);
   if (id) {
-    int *i = NULL;
+    int *i = nullptr;
     switch (what) {
       case 0:
         i = &(id->minval);
@@ -333,7 +333,7 @@ char *parseexp(const char *&p, int right,
 {
   if (rec > CSLIMIT_RECURSION) {
     cslimiterr("recursion depth");
-    return NULL;
+    return nullptr;
   }
   vector<char> res;
   int left = *p++;
@@ -406,7 +406,7 @@ char *parseexp(const char *&p, int right,
 screrr:
   scripterr();
   flagmapconfigerror(LWW_SCRIPTERR * 4);
-  return NULL;
+  return nullptr;
 }
 
 char *lookup(char *n,
@@ -458,7 +458,7 @@ char *parseword(const char *&p, int arg, int *infix,
   }
   const char *word = p;
   p += strcspn(p, "; \t\n\r\0");
-  if (p - word == 0) return NULL;
+  if (p - word == 0) return nullptr;
   if (arg == 1 && *word == '=' && p - word == 1) *infix = *word;
   return lvls ? lookup(newstring(word + lvls, p - word - lvls), lvls)
               : newstring(word, p - word);
@@ -527,14 +527,14 @@ void resultcharvector(const vector<char> &res,
 
 char *executeret(const char *p)  // all evaluation happens here, recursively
 {
-  if (!p || !p[0]) return NULL;
+  if (!p || !p[0]) return nullptr;
   if (executionstack.length() > CSLIMIT_RECURSION) {
     cslimiterr("recursion depth");
-    return NULL;
+    return nullptr;
   }
   executionstack.add(p);
   char *w[MAXWORDS], emptychar = '\0';
-  char *retval = NULL;
+  char *retval = nullptr;
 #define setretval(v)     \
   {                      \
     char *rv = v;        \
@@ -590,13 +590,13 @@ char *executeret(const char *p)  // all evaluation happens here, recursively
             ((void(__cdecl *)(char **, int))id->fun)(&w[1], numargs - 1);
           else if (strstr(id->sig, "c") || strstr(id->sig, "w")) {
             char *r = conc((const char **)w + 1, numargs - 1,
-                           strstr(id->sig, "c") != NULL);
+                           strstr(id->sig, "c") != nullptr);
             ((void(__cdecl *)(char *))id->fun)(r);
             delete[] r;
           } else if (strstr(id->sig, "d")) {
 #ifndef STANDALONE
             ((void(__cdecl *)(bool))id->fun)(addreleaseaction(id->name) !=
-                                             NULL);
+                                             nullptr);
 #endif
           } else {
             int ib1, ib2, ib3, ib4, ib5, ib6, ib7, ib8;
@@ -657,7 +657,7 @@ char *executeret(const char *p)  // all evaluation happens here, recursively
           }
 
           setretval(commandret);
-          commandret = NULL;
+          commandret = nullptr;
           break;
         }
 
@@ -769,7 +769,7 @@ bool exechook(int context, const char *ident, const char *body,
 {  // always use one of HOOK_SP_MP, HOOK_SP or HOOK_MP and then OR them (as
    // needed) with HOOK_TEAM, HOOK_NOTEAM, HOOK_BOTMODE, HOOK_FLAGMODE,
    // HOOK_ARENA
-  if (multiplayer(NULL) && (context & HOOK_FLAGMASK) != HOOK_MP &&
+  if (multiplayer(nullptr) && (context & HOOK_FLAGMASK) != HOOK_MP &&
       (context & HOOK_FLAGMASK) != HOOK_SP_MP)
     return false;  // hook is singleplayer-only
   if (((context & HOOK_TEAM) && !m_teammode) ||
@@ -848,7 +848,7 @@ struct completekey {
   int type;
   const char *dir, *ext;
 
-  completekey() {}
+  completekey() = default;
   completekey(int type, const char *dir, const char *ext)
       : type(type), dir(dir), ext(ext) {}
 };
@@ -861,8 +861,8 @@ struct completeval {
 
   completeval(int type, const char *dir, const char *ext)
       : type(type),
-        dir(dir && dir[0] ? newstring(dir) : NULL),
-        ext(ext && ext[0] ? newstring(ext) : NULL) {}
+        dir(dir && dir[0] ? newstring(dir) : nullptr),
+        ext(ext && ext[0] ? newstring(ext) : nullptr) {}
   ~completeval() {
     DELETEA(dir);
     DELETEA(ext);
@@ -886,24 +886,24 @@ static hashtable<char *, completeval *> completions;
 
 void addcomplete(char *command, int type, char *dir, char *ext) {
   if (type == COMPLETE_FILE) {
-    int dirlen = (int)strlen(dir);
+    auto dirlen = (int)strlen(dir);
     while (dirlen > 0 && (dir[dirlen - 1] == '/' || dir[dirlen - 1] == '\\'))
       dir[--dirlen] = '\0';
     if (ext) {
       if (strchr(ext, '*')) ext[0] = '\0';
-      if (!ext[0]) ext = NULL;
+      if (!ext[0]) ext = nullptr;
     }
   }
   completekey key(type, dir, ext);
   completeval **val = completedata.access(key);
   if (!val) {
-    completeval *f = new completeval(type, dir, ext);
+    auto *f = new completeval(type, dir, ext);
     if (type == COMPLETE_LIST) explodelist(dir, f->list);
     if (type == COMPLETE_FILE) {
       explodelist(dir, f->dirlist);
       loopv(f->dirlist) {
         char *dir = f->dirlist[i];
-        int dirlen = (int)strlen(dir);
+        auto dirlen = (int)strlen(dir);
         while (dirlen > 0 &&
                (dir[dirlen - 1] == '/' || dir[dirlen - 1] == '\\'))
           dir[--dirlen] = '\0';
@@ -924,11 +924,11 @@ void addfilecomplete(char *command, char *dir, char *ext) {
 }
 
 void addlistcomplete(char *command, char *list) {
-  addcomplete(command, COMPLETE_LIST, list, NULL);
+  addcomplete(command, COMPLETE_LIST, list, nullptr);
 }
 
 void addnickcomplete(char *command) {
-  addcomplete(command, COMPLETE_NICK, NULL, NULL);
+  addcomplete(command, COMPLETE_NICK, nullptr, nullptr);
 }
 
 COMMANDN(complete, addfilecomplete, "sss");
@@ -966,7 +966,7 @@ void commandcomplete(
   char *arg = strrchr(cmd, ' ');  // find last space in command -> if there is
                                   // one, we use argument completion
 
-  completeval *cdata = NULL;
+  completeval *cdata = nullptr;
   if (arg)  // full command is present
   {         // extract command name to find argument list
     string command;
@@ -1068,7 +1068,7 @@ bool execfile(const char *cfgfile) {
   copystring(s, cfgfile);
   setcontext("file", cfgfile);
   bool oldpersist = persistidents;
-  char *buf = loadfile(path(s), NULL);
+  char *buf = loadfile(path(s), nullptr);
   if (!buf) {
     resetcontext();
     return false;
@@ -1996,7 +1996,7 @@ inline bool identaccessdenied(
 
 // script origin tracking
 
-const char *curcontext = NULL, *curinfo = NULL;
+const char *curcontext = nullptr, *curinfo = nullptr;
 
 void scripterr() {
   ASSERT(execcontext >= 0 && execcontext < IEXC_NUM);
@@ -2014,7 +2014,7 @@ void setcontext(const char *context, const char *info) {
   curinfo = info;
 }
 
-void resetcontext() { curcontext = curinfo = NULL; }
+void resetcontext() { curcontext = curinfo = nullptr; }
 
 void dumpexecutionstack(stream *f) {
   if (f && executionstack.length()) {

@@ -124,7 +124,7 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
   int rx = vxx + lodright;
   int ry = vyy + lodbot;
 
-  float fsize = (float)(1 << mip);
+  auto fsize = (float)(1 << mip);
   for (int oy = y; oy < ys;
        oy++)  // first collect occlusion information for this block
   {
@@ -239,8 +239,8 @@ bool normalwall = true;
 if (s->type == CORNER) {
   // cull also
   bool topleft = true;
-  sqr *h1 = NULL;
-  sqr *h2 = NULL;
+  sqr *h1 = nullptr;
+  sqr *h2 = nullptr;
   if (SOLID(z)) {
     if (SOLID(w)) {
       render_wall(w, h2 = s, xx + 1, yy, xx, yy + 1, mip, t, v, false, 4);

@@ -5,8 +5,8 @@
 
 VAR(connected, 1, 0, 0);
 
-ENetHost *clienthost = NULL;
-ENetPeer *curpeer = NULL, *connpeer = NULL;
+ENetHost *clienthost = nullptr;
+ENetPeer *curpeer = nullptr, *connpeer = nullptr;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 SVAR(curdemofile, "n/a");
 extern bool clfail, cllock;
@@ -19,7 +19,7 @@ bool multiplayer(const char *op) {
   if (curpeer && op)
     conoutf("%s%s%s not available in multiplayer", *op ? "\"" : "",
             *op ? op : "operation", *op ? "\"" : "");
-  return curpeer != NULL;
+  return curpeer != nullptr;
 }
 
 bool allowedittoggle() {
@@ -51,7 +51,7 @@ void abortconnect() {
   connectrole = CR_DEFAULT;
   if (connpeer->state != ENET_PEER_STATE_DISCONNECTED)
     enet_peer_reset(connpeer);
-  connpeer = NULL;
+  connpeer = nullptr;
 #if 0
     if(!curpeer)
     {
@@ -62,7 +62,7 @@ void abortconnect() {
 }
 
 void connectserv_(const char *servername, int serverport = 0,
-                  const char *password = NULL, int role = CR_DEFAULT) {
+                  const char *password = nullptr, int role = CR_DEFAULT) {
   if (serverport <= 0) serverport = CUBE_DEFAULT_SERVER_PORT;
   if (watchingdemo) enddemoplayback();
   if (!clfail && cllock && searchlan < 2) return;
@@ -91,7 +91,7 @@ void connectserv_(const char *servername, int serverport = 0,
     address.host = ENET_HOST_BROADCAST;
   }
 
-  if (!clienthost) clienthost = enet_host_create(NULL, 2, 3, 0, 0);
+  if (!clienthost) clienthost = enet_host_create(nullptr, 2, 3, 0, 0);
 
   if (clienthost) {
     connpeer = enet_host_connect(clienthost, &address, 3, 0);
@@ -119,7 +119,7 @@ void connectadmin(char *servername, int *serverport, char *password) {
 
 void lanconnect() {
   modprotocol = false;
-  connectserv_(NULL);
+  connectserv_(nullptr);
 }
 
 void modconnectserv(char *servername, int *serverport, char *password) {
@@ -135,7 +135,7 @@ void modconnectadmin(char *servername, int *serverport, char *password) {
 
 void modlanconnect() {
   modprotocol = true;
-  connectserv_(NULL);
+  connectserv_(nullptr);
 }
 
 void whereami() {
@@ -154,7 +154,7 @@ void disconnect(int onlyclean, int async) {
       if (async) return;
       enet_peer_reset(curpeer);
     }
-    curpeer = NULL;
+    curpeer = nullptr;
     discmillis = 0;
     connected = 0;
     conoutf("disconnected");
@@ -227,7 +227,7 @@ void echo(char *text) {
   char *b, *s = strtok_r(text, "\n", &b);
   do {
     conoutf("%s", s ? s : "");
-    s = strtok_r(NULL, "\n", &b);
+    s = strtok_r(nullptr, "\n", &b);
   } while (s);
 }
 
@@ -237,7 +237,7 @@ void hudecho(char *text) {
   void (*outf)(const char *s, ...) = allowhudechos ? hudoutf : conoutf;
   do {
     outf("%s", s ? s : "");
-    s = strtok_r(NULL, "\n", &b);
+    s = strtok_r(nullptr, "\n", &b);
   } while (s);
 }
 
@@ -318,7 +318,7 @@ void cleanupclient() {
   disconnect(1);
   if (clienthost) {
     enet_host_destroy(clienthost);
-    clienthost = NULL;
+    clienthost = nullptr;
   }
 }
 
@@ -390,7 +390,7 @@ void sendpackettoserv(int chan, ENetPacket *packet) {
 
 void c2skeepalive() {
   if (clienthost && (curpeer || connpeer))
-    enet_host_service(clienthost, NULL, 0);
+    enet_host_service(clienthost, nullptr, 0);
 }
 
 extern string masterpwd;
@@ -561,12 +561,12 @@ void gets2c()  // get updates from the server
       return;
     }
   }
-  while (clienthost != NULL && enet_host_service(clienthost, &event, 0) > 0)
+  while (clienthost != nullptr && enet_host_service(clienthost, &event, 0) > 0)
     switch (event.type) {
       case ENET_EVENT_TYPE_CONNECT:
         disconnect(1);
         curpeer = connpeer;
-        connpeer = NULL;
+        connpeer = nullptr;
         connected = 1;
         conoutf("connected to server");
         exechook(HOOK_SP_MP, "onConnect", "%d", -1);
@@ -776,7 +776,7 @@ void deleteservermap(char *mapname) {
 
 string demosubpath;
 void getdemo(int *idx, char *dsp) {
-  if (!multiplayer(NULL)) {
+  if (!multiplayer(nullptr)) {
     conoutf("\f3Getting demo from server is not available in singleplayer");
     return;
   }
@@ -792,7 +792,7 @@ void getdemo(int *idx, char *dsp) {
 }
 
 void listdemos() {
-  if (!multiplayer(NULL)) {
+  if (!multiplayer(nullptr)) {
     conoutf("\f3Listing demos from server is not available in singleplayer");
     return;
   }

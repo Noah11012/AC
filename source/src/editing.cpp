@@ -64,7 +64,7 @@ void toggleedit(bool force) {
   }
   keyrepeat(editmode);
   editing = editmode ? 1 : 0;
-  editing_sp = editmode && !multiplayer(NULL) ? 1 : 0;
+  editing_sp = editmode && !multiplayer(nullptr) ? 1 : 0;
   player1->state =
       editing ? CS_EDITING : (watchingdemo ? CS_SPECTATE : CS_ALIVE);
   if (editing && player1->onladder) player1->onladder = false;
@@ -112,7 +112,7 @@ VARP(hideeditslotinfo, 0, 0, 2);
 
 char *editinfo() {
   static string info;
-  if (!editmode) return NULL;
+  if (!editmode) return nullptr;
   info[0] = '\0';
   int e = closestent();
   if (e >= 0) {
@@ -484,20 +484,20 @@ void netblockpastexy(ucharbuf *p, int bx, int by, int bxs, int bys, int light) {
       bxs * bys > MAXNETBLOCKSQR || OUTBORD(bx, by) ||
       OUTBORD(bx + bxs - 1, by + bys - 1))
     return;
-  block *b = (block *)new uchar[sizeof(block) + bxs * bys * sizeof(sqr)];
+  auto *b = (block *)new uchar[sizeof(block) + bxs * bys * sizeof(sqr)];
   b->x = bx;
   b->y = by;
   b->xs = bxs;
   b->ys = bys;
   memcpy(b + 1, p->buf, p->maxlen);
   makeundo(*b);
-  blockpaste(*b, bx, by, light != 0, NULL);
+  blockpaste(*b, bx, by, light != 0, nullptr);
   freeblockp(b);
 }
 
 void editundo() {
   EDIT("undo");
-  bool mp = multiplayer(NULL);
+  bool mp = multiplayer(nullptr);
   if (mp && undos.length() &&
       undos.last()->xs * undos.last()->ys > MAXNETBLOCKSQR) {
     conoutf("\f3next undo area too big for multiplayer editing");
@@ -530,7 +530,7 @@ COMMANDN(undolevel, gotoundolevel, "s");
 
 void editredo() {
   EDIT("redo");
-  bool mp = multiplayer(NULL);
+  bool mp = multiplayer(nullptr);
   if (mp && redos.length() &&
       redos.last()->xs * redos.last()->ys > MAXNETBLOCKSQR) {
     conoutf("\f3next redo area too big for multiplayer editing");
@@ -562,7 +562,7 @@ void restoreeditundo(ucharbuf &q) {
     len = getuint(q);
     if ((bx | by | (bx + bxs) | (by + bys)) & ~(ssize - 1)) continue;
     explen = bxs * bys;
-    block *b = (block *)new uchar[sizeof(block) + explen * sizeof(sqr)];
+    auto *b = (block *)new uchar[sizeof(block) + explen * sizeof(sqr)];
     b->x = bx;
     b->y = by;
     b->xs = bxs;
@@ -652,14 +652,14 @@ int backupeditundo(vector<uchar> &buf, int undolimit, int redolimit) {
 }
 
 vector<block *> copybuffers;
-void *copytexconfig = NULL;
+void *copytexconfig = nullptr;
 
 void resetcopybuffers() {
   loopv(copybuffers) freeblock(copybuffers[i]);
   copybuffers.shrink(0);
   if (copytexconfig) {
     texconfig_delete(copytexconfig);
-    copytexconfig = NULL;
+    copytexconfig = nullptr;
   }
 }
 
@@ -677,7 +677,7 @@ COMMAND(copy, "");
 
 void paste() {
   EDITSEL("paste");
-  bool mp = multiplayer(NULL);
+  bool mp = multiplayer(nullptr);
   if (mp) {
     loopv(copybuffers) if (copybuffers[i]->xs * copybuffers[i]->ys >
                            MAXNETBLOCKSQR) {
@@ -690,7 +690,7 @@ void paste() {
     return;
   }
 
-  uchar usedslots[256] = {0}, *texmap = NULL;
+  uchar usedslots[256] = {0}, *texmap = nullptr;
   if (!mp) {
     loopv(copybuffers) blocktexusage(*copybuffers[i], usedslots);
     if (sels.length() && copytexconfig)
@@ -807,7 +807,7 @@ COMMAND(editheight, "ii");
 // texture type : 0 floor, 1 wall, 2 ceil, 3 upper wall
 
 void renderhudtexturepreview(int slot, int pos, bool highlight) {
-  Texture *pt = slot != DEFAULT_SKY ? lookupworldtexture(slot, false) : NULL;
+  Texture *pt = slot != DEFAULT_SKY ? lookupworldtexture(slot, false) : nullptr;
   int hs = (highlight ? 0 : (FONTH / 3) * 2), bs = VIRTW / 8 - hs,
       border = FONTH / (highlight ? 2 : 4),
       x = 2 * VIRTW - VIRTW / 8 - FONTH + hs / 2, y = VIRTH * (6 - pos) / 4, xs,
@@ -1133,7 +1133,7 @@ void edittag(int *tag) {
 COMMAND(edittag, "i");
 
 void edittagclip(char *tag) {
-  int nt = ((int)strtol(tag, NULL, 0)) & TAGANYCLIP;
+  int nt = ((int)strtol(tag, nullptr, 0)) & TAGANYCLIP;
   if (tolower(*tag) == 'n')
     nt = 0;  // "none", "nil, "nop"
   else if (!strncasecmp(tag, "pl", 2))
@@ -1199,7 +1199,7 @@ COMMAND(movemap, "iii");
 void selfliprotate(block &sel, int dir) {
   makeundo(sel);
   block *org = blockcopy(sel);
-  const sqr *q = (const sqr *)(org + 1);
+  const auto *q = (const sqr *)(org + 1);
   int x1 = sel.x, x2 = sel.x + sel.xs - 1, y1 = sel.y, y2 = sel.y + sel.ys - 1,
       x, y;
   switch (dir) {
@@ -1258,7 +1258,7 @@ COMMAND(selectionflip, "s");
 
 void selectionwalk(char *action, char *beginsel, char *endsel) {
   EDITSEL("selectionwalk");
-  bool mp = multiplayer(NULL);
+  bool mp = multiplayer(nullptr);
   const char *localvars[] = {
       "sw_cursel", "sw_abs_x", "sw_abs_y", "sw_rel_x", "sw_rel_y", "sw_type",
       "sw_floor",  "sw_ceil",  "sw_wtex",  "sw_ftex",  "sw_ctex",  "sw_utex",

@@ -124,7 +124,7 @@ void flushmasteroutput() {
   ENetBuffer buf;
   buf.data = &masterout[masteroutpos];
   buf.dataLength = masterout.length() - masteroutpos;
-  int sent = enet_socket_send(mastersock, NULL, &buf, 1);
+  int sent = enet_socket_send(mastersock, nullptr, &buf, 1);
   if (sent >= 0) {
     masteroutpos += sent;
     if (masteroutpos >= masterout.length()) {
@@ -141,7 +141,7 @@ void flushmasterinput() {
   ENetBuffer buf;
   buf.data = masterin.getbuf() + masterin.length();
   buf.dataLength = masterin.capacity() - masterin.length();
-  int recv = enet_socket_receive(mastersock, NULL, &buf, 1);
+  int recv = enet_socket_receive(mastersock, nullptr, &buf, 1);
   if (recv > 0) {
     masterin.advance(recv);
     processmasterinput();
@@ -191,7 +191,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname,
     maxsock = max(maxsock, lansock);
     ENET_SOCKETSET_ADD(sockset, lansock);
   }
-  if (enet_socketset_select(maxsock, &sockset, NULL, 0) <= 0) return;
+  if (enet_socketset_select(maxsock, &sockset, nullptr, 0) <= 0) return;
 
   // reply all server info requests
   static uchar data[MAXTRANS];

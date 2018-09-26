@@ -4,7 +4,7 @@
 
 #if !defined(WIN32) && !defined(__APPLE__)
 
-#include <signal.h>
+#include <csignal>
 #include <syslog.h>
 
 #define AC_USE_SYSLOG
@@ -23,7 +23,7 @@ ENetAddress logdest = {ENET_HOST_ANY, 514};
 static const char *levelprefix[] = {"", "", "", "WARNING: ", "ERROR: "};
 static const char *levelname[] = {"DEBUG",   "VERBOSE", "INFO",
                                   "WARNING", "ERROR",   "DISABLED"};
-static FILE *fp = NULL;
+static FILE *fp = nullptr;
 static string filepath, ident;
 static int facility = -1,
 #ifdef AC_USE_SYSLOG
@@ -56,7 +56,7 @@ bool initlogging(const char *identity, int facility_, int consolethres,
   formatstring(filepath)("serverlog_%s_%s.txt", timestring(true), identity);
   if (fp) {
     fclose(fp);
-    fp = NULL;
+    fp = nullptr;
   }
   if (filethreshold < ACLOG_NUM) {
     fp = fopen(filepath, "w");
@@ -79,7 +79,7 @@ bool initlogging(const char *identity, int facility_, int consolethres,
 void exitlogging() {
   if (fp) {
     fclose(fp);
-    fp = NULL;
+    fp = nullptr;
   }
 #ifdef AC_USE_SYSLOG
   if (syslogthreshold < ACLOG_NUM) closelog();

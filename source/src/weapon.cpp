@@ -313,7 +313,7 @@ bool intersect(entity *e, const vec &from, const vec &to, vec *end) {
   mapmodelinfo *mmi = getmminfo(e->attr2);
   if (!mmi || !mmi->h) return false;
 
-  float lo = float(S(e->x, e->y)->floor + mmi->zoff + e->attr3);
+  auto lo = float(S(e->x, e->y)->floor + mmi->zoff + e->attr3);
   return intersectbox(vec(e->x, e->y, lo + mmi->h / 2.0f),
                       vec(mmi->rad, mmi->rad, mmi->h / 2.0f), from, to, end);
 }
@@ -321,7 +321,7 @@ bool intersect(entity *e, const vec &from, const vec &to, vec *end) {
 playerent *intersectclosest(const vec &from, const vec &to, const playerent *at,
                             float &bestdistsquared, int &hitzone,
                             bool aiming = true) {
-  playerent *best = NULL;
+  playerent *best = nullptr;
   bestdistsquared = 1e16f;
   int zone;
   if (at != player1 && player1->state == CS_ALIVE &&
@@ -354,7 +354,7 @@ playerent *playerincrosshair() {
     return intersectclosest(camera1->o, worldpos, (playerent *)camera1, dist,
                             hitzone, false);
   } else
-    return NULL;
+    return nullptr;
 }
 
 inline bool intersecttriangle(
@@ -470,7 +470,7 @@ void intersectgeometry(
             }
 
             if (s->type == CORNER) {
-              sqr *ns, *h = NULL, *n;
+              sqr *ns, *h = nullptr, *n;
               int bx, by, bs;
               int q = cornertest(x, y, bx, by, bs, ns, h);
               vec newto;
@@ -682,7 +682,7 @@ void radialeffect(playerent *o, vec &v, int qdam, playerent *at, int gun) {
   float dist = expdist(o, dir, v);
   if (dist < EXPDAMRAD) {
     if (at == player1) accuracym[gun].hits += 1.0f - (float)dist / EXPDAMRAD;
-    int damage = (int)(qdam * (1 - dist / EXPDAMRAD));
+    auto damage = (int)(qdam * (1 - dist / EXPDAMRAD));
     hit(damage, o, at, dir, gun, true, int(dist * DMF));
   }
 }
@@ -713,7 +713,7 @@ void movebounceents() {
 void clearbounceents() {
   if (gamespeed == 100)
     ;
-  else if (multiplayer(NULL))
+  else if (multiplayer(nullptr))
     bounceents.add((bounceent *)player1);
   loopv(bounceents) if (bounceents[i]) {
     delete bounceents[i];
@@ -779,8 +779,8 @@ void addgib(playerent *d) {
     p->maxspeed = 30.0f;
     p->rotspeed = 3.0f;
 
-    const float angle = (float)rnd(360);
-    const float speed = (float)gibspeed;
+    const auto angle = (float)rnd(360);
+    const auto speed = (float)gibspeed;
 
     p->vel.x = sinf(RAD * angle) * rnd(1000) / 1000.0f;
     p->vel.y = cosf(RAD * angle) * rnd(1000) / 1000.0f;
@@ -806,7 +806,7 @@ void shorten(const vec &from, vec &target, float distsquared) {
 void raydamage(vec &from, vec &to, playerent *d) {
   int dam = d->weaponsel->info.damage;
   int hitzone = -1;
-  playerent *o = NULL;
+  playerent *o = nullptr;
   float distsquared, hitdistsquared = 0.0f;
   bool hit = false;
   int rayscount = 0, hitscount = 0;
@@ -823,7 +823,7 @@ void raydamage(vec &from, vec &to, playerent *d) {
       int h = k * SGRAYS + i;
       if (hits[h]) {
         o = hits[h];
-        hits[h] = NULL;
+        hits[h] = nullptr;
         int numhits_o, numhits_m, numhits_c;
         numhits_o = numhits_m = numhits_c = 0;
         switch (sgr[h].ds) {
@@ -841,7 +841,7 @@ void raydamage(vec &from, vec &to, playerent *d) {
         }
         for (int j = i + 1; j < 3 * SGRAYS; j++)
           if (hits[j] == o) {
-            hits[j] = NULL;
+            hits[j] = nullptr;
             switch (sgr[j].ds) {
               case 0:
                 numhits_o++;
@@ -1101,7 +1101,7 @@ void weapon::renderhudmodel(int lastaction, int index) {
                   (righthanded == index ? ANIM_MIRROR : 0) |
                   (emit ? ANIM_PARTICLE : 0),
               0, -1, wm.pos, 0, p->yaw + 90, p->pitch + wm.k_rot, 40.0f,
-              wm.basetime, NULL, NULL, 1.28f);
+              wm.basetime, nullptr, nullptr, 1.28f);
 }
 
 void weapon::updatetimers(int millis) {
@@ -1187,8 +1187,8 @@ void grenadeent::splash() {
   particle_splash(PART_SPARK, 50, 300, o);
   particle_fireball(PART_FIREBALL, o);
   addscorchmark(o);
-  adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
-  adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
+  adddynlight(nullptr, o, 16, 200, 100, 255, 255, 224);
+  adddynlight(nullptr, o, 16, 600, 600, 192, 160, 128);
   if (owner == player1) {
     accuracym[GUN_GRENADE].shots++;
   } else if (!m_botmode) {
@@ -1262,7 +1262,7 @@ void grenadeent::onmoved(const vec &dist) {
 
 grenades::grenades(playerent *owner)
     : weapon(owner, GUN_GRENADE),
-      inhandnade(NULL),
+      inhandnade(nullptr),
       throwwait((13 * 1000) / 40),
       throwmillis(0),
       cookingmillis(0),
@@ -1331,7 +1331,7 @@ void grenades::attackfx(const vec &from, const vec &to,
     audiomgr.playsound(S_GRENADEPULL, owner);  // activate
   } else if (millis > 0)                       // throw
   {
-    grenadeent *g = new grenadeent(owner, millis);
+    auto *g = new grenadeent(owner, millis);
     state = GST_THROWING;
     bounceents.add(g);
     g->_throw(from, to);
@@ -1377,7 +1377,7 @@ void grenades::thrownade() {
 void grenades::thrownade(const vec &vel) {
   inhandnade->moveoutsidebbox(vel, owner);
   inhandnade->_throw(inhandnade->o, vel);
-  inhandnade = NULL;
+  inhandnade = nullptr;
 
   throwmillis = lastmillis;
   updatelastaction(owner);
@@ -1422,7 +1422,7 @@ void grenades::onownerdies() {
 
 void grenades::removebounceent(bounceent *b) {
   if (b == inhandnade) {
-    inhandnade = NULL;
+    inhandnade = nullptr;
     reset();
   }
 }
@@ -1448,7 +1448,7 @@ bool gun::attack(vec &targ) {
     bool local = (owner == player1);
     audiomgr.playsound(S_NOAMMO, owner, local ? SP_HIGH : SP_NORMAL);
     gunwait += 250;
-    owner->lastattackweapon = NULL;
+    owner->lastattackweapon = nullptr;
     shots = 0;
     checkautoreload();
     return false;
@@ -1604,7 +1604,7 @@ void sniperrifle::renderaimhelp(bool teamwarning) {
   if (!editmode) {
     if (scoped || teamwarning)
       drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_SCOPE,
-                    NULL, 24.0f);
+                    nullptr, 24.0f);
   } else
     drawcrosshair(owner, CROSSHAIR_EDIT);
 }
@@ -1680,7 +1680,7 @@ bool cpistol::attack(vec &targ)  // modded from gun::attack // FIXME
   if (!mag) {
     audiomgr.playsoundc(S_NOAMMO);
     gunwait += 250;
-    owner->lastattackweapon = NULL;
+    owner->lastattackweapon = nullptr;
     shots = 0;
     checkautoreload();
     return false;
@@ -1726,7 +1726,7 @@ void cpistol::setburst(bool enable) {
 void setburst(bool enable) {
   if (player1->weaponsel->type != GUN_CPISTOL) return;
   if (intermission) return;
-  cpistol *cp = (cpistol *)player1->weaponsel;
+  auto *cp = (cpistol *)player1->weaponsel;
   cp->setburst(enable);
   if (!burst) {
     if (enable && burstshots == 0) attack(true);
@@ -1842,7 +1842,7 @@ void knife::renderstats() {}
 
 void setscope(bool enable) {
   if (player1->weaponsel->type != GUN_SNIPER) return;
-  sniperrifle *sr = (sniperrifle *)player1->weaponsel;
+  auto *sr = (sniperrifle *)player1->weaponsel;
   sr->setscope(enable);
 }
 
@@ -1854,7 +1854,7 @@ void shoot(playerent *p, vec &targ) {
   if (bweap->busy())
     bweap->attack(targ);  // continue ongoing nade action
   else
-    bweap = NULL;
+    bweap = nullptr;
   if (weap && !p->weaponchanging && weap != bweap) weap->attack(targ);
 }
 

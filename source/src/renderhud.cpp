@@ -14,7 +14,7 @@ inline void turn_on_transparency(int alpha = 255) {
 }
 
 void drawequipicon(float x, float y, int col, int row) {
-  static Texture *tex = NULL;
+  static Texture *tex = nullptr;
   if (!tex) tex = textureload("packages/misc/items.png", 3);
   if (tex) {
     turn_on_transparency();
@@ -26,7 +26,7 @@ void drawequipicon(float x, float y, int col, int row) {
 VARP(radarentsize, 4, 12, 64);
 
 void drawradaricon(float x, float y, float s, int col, int row) {
-  static Texture *tex = NULL;
+  static Texture *tex = nullptr;
   if (!tex) tex = textureload("packages/misc/radaricons.png", 3);
   if (tex) {
     glEnable(GL_BLEND);
@@ -37,7 +37,7 @@ void drawradaricon(float x, float y, float s, int col, int row) {
 
 void drawctficon(float x, float y, float s, int col, int row, float ts,
                  int alpha) {
-  static Texture *ctftex = NULL, *htftex = NULL, *ktftex = NULL;
+  static Texture *ctftex = nullptr, *htftex = nullptr, *ktftex = nullptr;
   if (!ctftex) ctftex = textureload("packages/misc/ctficons.png", 3);
   if (!htftex) htftex = textureload("packages/misc/htficons.png", 3);
   if (!ktftex) ktftex = textureload("packages/misc/ktficons.png", 3);
@@ -53,7 +53,7 @@ void drawctficon(float x, float y, float s, int col, int row, float ts,
 
 VARP(votealpha, 0, 255, 255);
 void drawvoteicon(float x, float y, int col, int row, bool noblend) {
-  static Texture *tex = NULL;
+  static Texture *tex = nullptr;
   if (!tex) tex = textureload("packages/misc/voteicons.png", 3);
   if (tex) {
     if (noblend)
@@ -84,7 +84,7 @@ VAR(showmap, 0, 0, 1);
 VARP(editinfopanelmillis, 5, 80, 2000);
 
 void drawscope(bool preload) {
-  static Texture *scopetex = NULL;
+  static Texture *scopetex = nullptr;
   if (!scopetex) scopetex = textureload("packages/misc/scope.png", 3);
   if (preload) return;
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -157,7 +157,7 @@ void drawscope(bool preload) {
 }
 
 const char *crosshairnames[CROSSHAIR_NUM + 1];  // filled in main.cpp
-Texture *crosshairs[CROSSHAIR_NUM] = {NULL};    // weapon specific crosshairs
+Texture *crosshairs[CROSSHAIR_NUM] = {nullptr};    // weapon specific crosshairs
 
 Texture *loadcrosshairtexture(const char *c) {
   defformatstring(p)("packages/crosshairs/%s", behindpath(c));
@@ -269,7 +269,7 @@ void drawdmgindicator() {
   if (!damageindicatorsize) return;
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glDisable(GL_TEXTURE_2D);
-  float size = (float)damageindicatorsize;
+  auto size = (float)damageindicatorsize;
   loopi(8) {
     if (!damagedirections[i] || damagedirections[i] < lastmillis) continue;
     float t = damageindicatorsize / (float)(damagedirections[i] - lastmillis);
@@ -365,7 +365,7 @@ void drawequipicons(playerent *p) {
 }
 
 void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
-                  bool pulse, const char *label = NULL, ...) PRINTFARGS(8, 9);
+                  bool pulse, const char *label = nullptr, ...) PRINTFARGS(8, 9);
 
 void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
                   bool pulse, const char *label, ...) {
@@ -393,9 +393,9 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
 }
 
 struct hudline : cline {
-  int type;
+  int type{HUDMSG_INFO};
 
-  hudline() : type(HUDMSG_INFO) {}
+  hudline()  {}
 };
 
 struct hudmessages : consolebuffer<hudline> {
@@ -419,7 +419,7 @@ struct hudmessages : consolebuffer<hudline> {
     } else
       consolebuffer<hudline>::addline(sf, totalmillis).type = type;
   }
-  void render() {
+  void render() override {
     if (!conlines.length()) return;
     glPushMatrix();
     glLoadIdentity();
@@ -466,7 +466,7 @@ bool isattacking(playerent *p) { return lastmillis - p->lastaction < 500; }
 vec getradarpos() {
   float radarviewsize = VIRTH / 6;
   float overlaysize = radarviewsize * 4.0f / 3.25f;
-  return vec(VIRTW - 10 - VIRTH / 28 - overlaysize, 10 + VIRTH / 52, 0);
+  return {VIRTW - 10 - VIRTH / 28 - overlaysize, 10 + VIRTH / 52, 0};
 }
 
 VARP(showmapbackdrop, 0, 0, 2);
@@ -743,12 +743,12 @@ void drawradar_vicinity(playerent *p, int w, int h) {
   // eye candy:
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glColor3f(1, 1, 1);
-  static Texture *bordertex = NULL;
+  static Texture *bordertex = nullptr;
   if (!bordertex) bordertex = textureload("packages/misc/compass-base.png", 3);
   quad(bordertex->id, centerpos.x - halfviewsize - 16,
        centerpos.y - halfviewsize - 16, radarviewsize + 32, 0, 0, 1, 1);
   if (!hidecompass) {
-    static Texture *compasstex = NULL;
+    static Texture *compasstex = nullptr;
     if (!compasstex)
       compasstex = textureload("packages/misc/compass-rose.png", 3);
     glPushMatrix();
@@ -770,7 +770,7 @@ void drawradar(playerent *p, int w, int h) {
 void drawteamicons(int w, int h, bool spect) {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glColor3f(1, 1, 1);
-  static Texture *icons = NULL;
+  static Texture *icons = nullptr;
   if (!icons) icons = textureload("packages/misc/teamicons.png", 3);
   if (player1->team < TEAM_SPECT || spect)
     quad(icons->id, VIRTW - VIRTH / 12 - 10, 10, VIRTH / 12,
@@ -782,7 +782,7 @@ void drawteamicons(int w, int h, bool spect) {
 }
 
 int damageblendmillis = 0;
-void *damageblendplayer = NULL;
+void *damageblendplayer = nullptr;
 
 VARFP(damagescreen, 0, 1, 1, {
   if (!damagescreen) damageblendmillis = 0;
@@ -831,9 +831,9 @@ void drawscores() {
     return;
   } else if (time > 5) {
     time = 0;
-    medals_arrived = 0;
+    medals_arrived = false;
   }
-  static Texture *tex = NULL;
+  static Texture *tex = nullptr;
   if (!tex) tex = textureload("packages/misc/nice_medals.png", 4);
   time += ((float)(curtime)) / 1000;
   float vw = VIRTW * 7 / 4, vh = VIRTH * 7 / 4;
@@ -906,7 +906,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert,
   }
 
   if (lastmillis < damageblendmillis && damageblendplayer == p) {
-    static Texture *damagetex = NULL;
+    static Texture *damagetex = nullptr;
     if (!damagetex) damagetex = textureload("packages/misc/damage.png", 3);
 
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -933,7 +933,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert,
 
   playerent *targetplayer = playerincrosshair();
   bool menu = menuvisible();
-  bool command = getcurcommand(NULL) ? true : false;
+  bool command = getcurcommand(nullptr) ? true : false;
   bool reloading =
       lastmillis < p->weaponsel->reloading + p->weaponsel->info.reloadtime;
   if (p->state == CS_ALIVE || p->state == CS_EDITING) {
@@ -1061,7 +1061,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert,
 
   if (editmode && !hideeditinfopanel) {
     static int lasteditip = 0;
-    static char *editip = NULL;
+    static char *editip = nullptr;
     if (!lasteditip || totalmillis - lasteditip >
                            editinfopanelmillis) {  // update edit info panel
       lasteditip = totalmillis;
@@ -1098,7 +1098,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert,
                 20);
   }
 
-  if (hidevote < 2 && multiplayer(NULL)) {
+  if (hidevote < 2 && multiplayer(nullptr)) {
     extern votedisplayinfo *curvote;
 
     if (curvote && curvote->millis >= totalmillis &&
@@ -1145,7 +1145,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert,
     const int left = (VIRTW)*3 / 2, top = (VIRTH * 3 / 2) * 3 / 4;
     draw_textf("SPACE to change view",
                left - (text_width("SCROLL to change player") + FONTH / 2), top);
-    if (multiplayer(NULL) || watchingdemo)
+    if (multiplayer(nullptr) || watchingdemo)
       draw_textf("SCROLL to change player",
                  left - (text_width("SCROLL to change player") + FONTH / 2),
                  top + 80);
@@ -1268,7 +1268,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert,
   glMatrixMode(GL_MODELVIEW);
 }
 
-Texture *startscreen = NULL;
+Texture *startscreen = nullptr;
 
 void loadingscreen(const char *fmt, ...) {
   if (!startscreen)

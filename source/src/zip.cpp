@@ -40,18 +40,14 @@ struct ziparchive;
 
 struct zipfile  // file in a zip archive
 {
-  char *name, *fullname;  // name from zip, full path name
-  uint header, offset, size, compressedsize;
-  ziparchive *location;
+  char *name{NULL}, *fullname{NULL};  // name from zip, full path name
+  uint header{0}, offset, size{0}, compressedsize{0};
+  ziparchive *location{NULL};
 
   zipfile()
-      : name(NULL),
-        fullname(NULL),
-        header(0),
-        offset(~0U),
-        size(0),
-        compressedsize(0),
-        location(NULL) {}
+      : 
+        offset(~0U)
+        {}
   ~zipfile() {
     DELSTRING(name);
     DELSTRING(fullname);
@@ -60,13 +56,13 @@ struct zipfile  // file in a zip archive
 
 struct ziparchive  // zip archive file
 {
-  char *name;
-  stream *data;
+  char *name{NULL};
+  stream *data{NULL};
   vector<zipfile> files;
-  int openfiles;
-  zipstream *owner;
+  int openfiles{0};
+  zipstream *owner{NULL};
 
-  ziparchive() : name(NULL), data(NULL), openfiles(0), owner(NULL) {}
+  ziparchive()  {}
   ~ziparchive() {
     DELSTRING(name);
     DELETEP(data);
@@ -82,10 +78,10 @@ struct memfile {
 static bool findzipdirectory(stream *f, zipdirectoryheader &hdr) {
   if (!f->seek(0, SEEK_END)) return false;
 
-  uchar buf[1024], *src = NULL;
+  uchar buf[1024], *src = nullptr;
   int len = 0, offset = f->tell(),
       end = max(offset - 0xFFFF - ZIP_DIRECTORY_SIZE, 0);
-  const uint signature = lilswap<uint>(ZIP_DIRECTORY_SIGNATURE);
+  const auto signature = lilswap<uint>(ZIP_DIRECTORY_SIGNATURE);
 
   while (offset > end) {
     int carry = min(len, ZIP_DIRECTORY_SIZE - 1),
@@ -251,28 +247,28 @@ static bool readlocalfileheader(stream *f, ziplocalfileheader &h, uint offset) {
 struct zipstream : stream {
   enum { BUFSIZE = 16384 };
 
-  ziparchive *arch;
-  zipfile *info;
+  ziparchive *arch{NULL};
+  zipfile *info{NULL};
   z_stream zfile;
-  uchar *buf;
-  int reading;
-  bool ended;
+  uchar *buf{NULL};
+  int reading{-1};
+  bool ended{false};
 
-  zipstream() : arch(NULL), info(NULL), buf(NULL), reading(-1), ended(false) {
-    zfile.zalloc = NULL;
-    zfile.zfree = NULL;
-    zfile.opaque = NULL;
-    zfile.next_in = zfile.next_out = NULL;
+  zipstream()  {
+    zfile.zalloc = nullptr;
+    zfile.zfree = nullptr;
+    zfile.opaque = nullptr;
+    zfile.next_in = zfile.next_out = nullptr;
     zfile.avail_in = zfile.avail_out = 0;
   }
 
-  ~zipstream() { close(); }
+  ~zipstream() override { close(); }
 
   void readbuf(uint size = BUFSIZE) {
     if (!zfile.avail_in) zfile.next_in = (Bytef *)buf;
     size = min(size, uint(&buf[BUFSIZE] - &zfile.next_in[zfile.avail_in]));
     if (arch->owner != this) {
-      arch->owner = NULL;
+      arch->owner = nullptr;
       if (arch->data->seek(reading, SEEK_SET))
         arch->owner = this;
       else
@@ -290,7 +286,7 @@ struct zipstream : stream {
   bool open(ziparchive *a, zipfile *zf) {
     if (zf->offset == ~0U) {
       ziplocalfileheader h;
-      a->owner = NULL;
+      a->owner = nullptr;
       if (!readlocalfileheader(a->data, h, zf->header)) return false;
       zf->offset =
           zf->header + ZIP_LOCAL_FILE_SIZE + h.namelength + h.extralength;
@@ -323,25 +319,25 @@ struct zipstream : stream {
     reading = -1;
   }
 
-  void close() {
+  void close() override {
     stopreading();
     DELETEA(buf);
     if (arch) {
-      arch->owner = NULL;
+      arch->owner = nullptr;
       arch->openfiles--;
-      arch = NULL;
+      arch = nullptr;
     }
   }
 
-  long size() { return info->size; }
-  bool end() { return reading < 0 || ended; }
-  long tell() {
+  long size() override { return info->size; }
+  bool end() override { return reading < 0 || ended; }
+  long tell() override {
     return reading >= 0 ? (info->compressedsize ? zfile.total_out
                                                 : reading - info->offset)
                         : -1;
   }
 
-  bool seek(long pos, int whence) {
+  bool seek(long pos, int whence) override {
     if (reading < 0) return false;
     if (!info->compressedsize) {
       switch (whence) {
@@ -358,7 +354,7 @@ struct zipstream : stream {
           return false;
       }
       pos = clamp(pos, long(info->offset), long(info->offset + info->size));
-      arch->owner = NULL;
+      arch->owner = nullptr;
       if (!arch->data->seek(pos, SEEK_SET)) return false;
       arch->owner = this;
       reading = pos;
@@ -384,7 +380,7 @@ struct zipstream : stream {
       zfile.next_in += zfile.avail_in;
       zfile.avail_in = 0;
       zfile.total_in = info->compressedsize;
-      arch->owner = NULL;
+      arch->owner = nullptr;
       ended = false;
       return true;
     }
@@ -397,9 +393,9 @@ struct zipstream : stream {
         zfile.avail_in += zfile.total_in;
         zfile.next_in -= zfile.total_in;
       } else {
-        arch->owner = NULL;
+        arch->owner = nullptr;
         zfile.avail_in = 0;
-        zfile.next_in = NULL;
+        zfile.next_in = nullptr;
         reading = info->offset;
       }
       inflateReset(&zfile);
@@ -416,11 +412,11 @@ struct zipstream : stream {
     return true;
   }
 
-  int read(void *buf, int len) {
+  int read(void *buf, int len) override {
     if (reading < 0 || !buf || !len) return 0;
     if (!info->compressedsize) {
       if (arch->owner != this) {
-        arch->owner = NULL;
+        arch->owner = nullptr;
         if (!arch->data->seek(reading, SEEK_SET)) {
           stopreading();
           return 0;
@@ -428,7 +424,7 @@ struct zipstream : stream {
         arch->owner = this;
       }
 
-      int n = (int)arch->data->read(
+      auto n = (int)arch->data->read(
           buf, min(len, int(info->size + info->offset - reading)));
       reading += n;
       if (n < len) ended = true;
@@ -558,7 +554,7 @@ COMMAND(listmemfiles, "");
 
 ziparchive *findzip(const char *name) {
   loopv(archives) if (!strcmp(name, archives[i]->name)) return archives[i];
-  return NULL;
+  return nullptr;
 }
 
 const char *fixzipname(char *name)  // check, if valid path + filename, based on
@@ -573,7 +569,7 @@ const char *fixzipname(char *name)  // check, if valid path + filename, based on
       !strncmp("###", behindpath(name), 3) ? "###" : "", bp);
   if (strlen(name) > 40 || strchr(name, '.') || strcmp(pname, name) ||
       *name == '/')
-    return NULL;  // illegal filename
+    return nullptr;  // illegal filename
   formatstring(pname)("mods/%s.zip", name);
   return path(pname);
 }
@@ -601,7 +597,7 @@ void addzipmod(char *name) {
     rebuildzipfilehashtable();
     return;
   }
-  ziparchive *arch = new ziparchive;
+  auto *arch = new ziparchive;
   arch->name = newstring(name);
   if (!(arch->data = openfile(pname, "rb"))) {
     conoutf("could not open file %s", pname);
@@ -610,7 +606,7 @@ void addzipmod(char *name) {
   }
   int zipsize = arch->data->size();
   if (zipsize > 0 && zipsize < zipcachemaxsize * 1024) {
-    uchar *buf = new uchar[zipsize];
+    auto *buf = new uchar[zipsize];
     if (arch->data->read(buf, zipsize) != zipsize) {
       conoutf("could not cache file %s", pname);
       delete[] buf;
@@ -618,7 +614,7 @@ void addzipmod(char *name) {
       return;
     }
     delete arch->data;
-    arch->data = openmemfile(buf, zipsize, NULL);
+    arch->data = openmemfile(buf, zipsize, nullptr);
   }
   zipdirectoryheader h;
   if (!findzipdirectory(arch->data, h) ||
@@ -627,7 +623,7 @@ void addzipmod(char *name) {
     delete arch;
     return;
   }
-  mountzip(*arch, NULL, NULL, !strncmp(behindpath(name), "###", 3));
+  mountzip(*arch, nullptr, nullptr, !strncmp(behindpath(name), "###", 3));
   archives.add(arch);
   rebuildzipfilehashtable();
   DEBUGCODE(clientlogf("added zipmod %s, %d bytes, %d files", pname, zipsize,
@@ -637,7 +633,7 @@ COMMAND(addzipmod, "s");
 
 void zipmodremove(char *name) {
   const char *pname = fixzipname(name);
-  ziparchive *exists = pname ? findzip(name) : NULL;
+  ziparchive *exists = pname ? findzip(name) : nullptr;
   if (!exists) {
     conoutf("zip %s is not loaded", name);
     return;
@@ -703,7 +699,7 @@ void zipmodgetdesc(
     char *name)  // open zip, read desc.txt and mount preview picture
 {
   const char *pname = fixzipname(name);
-  stream *f = pname ? openfile(pname, "rb") : NULL, *zf = NULL;
+  stream *f = pname ? openfile(pname, "rb") : nullptr, *zf = nullptr;
   vector<const char *> files;
   vector<char> res;
   void *mz = zipmanualopen(f, files);
@@ -722,7 +718,7 @@ void zipmodgetdesc(
               break;
           }
       } else if (!strcmp(files[i], previewjpg)) {
-        vector<uchar> *v = new vector<uchar>;
+        auto *v = new vector<uchar>;
         zf = openvecfile(v);
         int got = zipmanualread(
             mz, i, zf, 128 * 1024);  // max. file size for preview.jpg is 128k
@@ -745,7 +741,7 @@ COMMAND(zipmodgetdesc, "s");
 void zipmodgetfiles(char *name)  // open zip, read list of files
 {
   const char *pname = fixzipname(name);
-  stream *f = pname ? openfile(pname, "rb") : NULL;
+  stream *f = pname ? openfile(pname, "rb") : nullptr;
   vector<const char *> files;
   vector<char> res;
   void *mz = zipmanualopen(f, files);
@@ -762,7 +758,7 @@ COMMAND(zipmodgetfiles, "s");
 void zipmodgetrevision(char *name)  // open zip, read list of files
 {
   const char *pname = fixzipname(name);
-  stream *f = pname ? openfile(pname, "rb") : NULL;
+  stream *f = pname ? openfile(pname, "rb") : nullptr;
   vector<const char *> files;
   int res = 0, modrevlen = (int)strlen(modrev);
   void *mz = zipmanualopen(f, files);
@@ -787,14 +783,14 @@ void writezipmodconfig(stream *f) {
 // simple interface to read zip contents without mounting them first
 
 void *zipmanualopen(stream *f, vector<const char *> &files) {
-  if (!f) return NULL;
+  if (!f) return nullptr;
   zipdirectoryheader h;
-  ziparchive *arch = new ziparchive;
+  auto *arch = new ziparchive;
   if (!findzipdirectory(f, h) ||
       !readzipdirectory(f, h.entries, h.offset, h.size, arch->files)) {
     delete arch;
     delete f;
-    return NULL;
+    return nullptr;
   }
   arch->data = f;
   loopv(arch->files) files.add(arch->files[i].name);
@@ -802,13 +798,13 @@ void *zipmanualopen(stream *f, vector<const char *> &files) {
 }
 
 stream *zipmanualstream(void *a, int n) {
-  ziparchive *arch = (ziparchive *)a;
+  auto *arch = (ziparchive *)a;
   if (arch->files.inrange(n)) {
-    zipstream *s = new zipstream;
+    auto *s = new zipstream;
     if (s->open(arch, &arch->files[n])) return s;
     delete s;
   }
-  return NULL;
+  return nullptr;
 }
 
 int zipmanualread(void *a, int n, stream *f, int maxlen) {
@@ -822,29 +818,29 @@ int zipmanualread(void *a, int n, stream *f, int maxlen) {
 }
 
 void zipmanualclose(void *a) {
-  ziparchive *arch = (ziparchive *)a;
+  auto *arch = (ziparchive *)a;
   delete arch;  // also closes arch->data, the associated file stream!
 }
 
 // AC virtual filesystem
 
 bool findzipfile(const char *name) {
-  return zipfiles.access(name) != NULL || memfiles.access(name) != NULL;
+  return zipfiles.access(name) != nullptr || memfiles.access(name) != nullptr;
 }
 
 stream *openzipfile(const char *name, const char *mode) {
   for (; *mode; mode++)
-    if (*mode == 'w' || *mode == 'a') return NULL;
+    if (*mode == 'w' || *mode == 'a') return nullptr;
   //    if(!strncmp(name, "zip://", 6)) name += 6;
   memfile *mf = memfiles.access(name);
   if (mf) return openmemfile(mf->buf, mf->len, &mf->refcnt);
   zipfile **zf = zipfiles.access(name);
   if (zf && *zf) {
-    zipstream *s = new zipstream;
+    auto *s = new zipstream;
     if (s->open((*zf)->location, *zf)) return s;
     delete s;
   }
-  return NULL;
+  return nullptr;
 }
 
 void listzipfiles(const char *dir, const char *ext,
@@ -870,7 +866,7 @@ void listzipfiles(const char *dir, const char *ext,
 void listzipdirs(const char *dir,
                  vector<char *> &subdirs)  // (does not list memfiles)
 {
-  int dirsize = (int)strlen(dir);
+  auto dirsize = (int)strlen(dir);
   enumerate(zipfiles, zipfile *, zf, {
     if (strncmp(zf->fullname, dir, dirsize)) continue;
     const char *name = zf->fullname + dirsize;

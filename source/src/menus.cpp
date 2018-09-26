@@ -3,8 +3,8 @@
 #include "cube.h"
 
 hashtable<const char *, gmenu> menus;
-gmenu *curmenu = NULL, *lastmenu = NULL;
-color *menuselbgcolor, *menuseldescbgcolor = NULL;
+gmenu *curmenu = nullptr, *lastmenu = nullptr;
+color *menuselbgcolor, *menuseldescbgcolor = nullptr;
 static int menurighttabwidth =
     888;  // width of sliders and text input fields (is adapted to font and
           // screen size later)
@@ -40,7 +40,7 @@ void showmenu(const char *name, bool top) {
       15 * text_width(
                "w"));  // adapt to screen and font size every time a menu opens
   if (!name) {
-    setcurmenu(NULL);
+    setcurmenu(nullptr);
     return;
   }
   gmenu *m = menus.access(name);
@@ -62,7 +62,7 @@ void closemenu(const char *name) {
       m = menustack.pop();
       if (m) m->close();
     }
-    setcurmenu(NULL);
+    setcurmenu(nullptr);
     return;
   }
   m = menus.access(name);
@@ -198,11 +198,11 @@ struct mitemmanual : mitem {
         hoveraction(hoveraction),
         desc(desc) {}
 
-  virtual int width() {
+  int width() override {
     return text_width(text) + (strchr(text, '\n') ? menurighttabwidth : 0);
   }
 
-  virtual void render(int x, int y, int w) {
+  void render(int x, int y, int w) override {
     int c = greyedout ? 128 : 255;
     mitem::render(x, y, w);
     const char *nl = strchr(text, '\n');
@@ -216,32 +216,32 @@ struct mitemmanual : mitem {
       draw_text(text, x, y, c, c, c);
   }
 
-  virtual void focus(bool on) {
+  void focus(bool on) override {
     if (on && hoveraction) execute(hoveraction);
   }
 
-  virtual int select() {
+  int select() override {
     int result = 0;
     if (action && action[0]) {
       gmenu *oldmenu = curmenu;
       result = execaction(text);
       if (result >= 0 && oldmenu == curmenu) {
-        menuset(NULL, false);
+        menuset(nullptr, false);
         menustack.shrink(0);
       }
     }
     return result;
   }
-  virtual const char *getdesc() { return desc; }
-  virtual const char *gettext() { return text; }
-  virtual const char *getaction() { return action; }
+  const char *getdesc() override { return desc; }
+  const char *gettext() override { return text; }
+  const char *getaction() override { return action; }
 };
 
 struct mitemtext : mitemmanual {
   mitemtext(gmenu *parent, char *text, char *action, char *hoveraction,
-            color *bgcolor, const char *desc = NULL)
+            color *bgcolor, const char *desc = nullptr)
       : mitemmanual(parent, text, action, hoveraction, bgcolor, desc) {}
-  virtual ~mitemtext() {
+  ~mitemtext() override {
     DELETEA(text);
     DELETEA(action);
     DELETEA(hoveraction);
@@ -257,18 +257,18 @@ struct mitemimagemanual : mitemmanual {
 
   mitemimagemanual(gmenu *parent, const char *filename, const char *altfontname,
                    char *text, char *action, char *hoveraction, color *bgcolor,
-                   const char *desc = NULL)
+                   const char *desc = nullptr)
       : mitemmanual(parent, text, action, hoveraction, bgcolor, desc) {
-    image = filename ? textureload(filename, 3) : NULL;
-    altfont = altfontname ? getfont(altfontname) : NULL;
+    image = filename ? textureload(filename, 3) : nullptr;
+    altfont = altfontname ? getfont(altfontname) : nullptr;
   }
-  virtual ~mitemimagemanual() {}
-  virtual int width() {
+  ~mitemimagemanual() override = default;
+  int width() override {
     if (image && *text != '\t')
       return (FONTH * image->xs) / image->ys + FONTH / 2 + mitemmanual::width();
     return mitemmanual::width();
   }
-  virtual void render(int x, int y, int w) {
+  void render(int x, int y, int w) override {
     mitem::render(x, y, w);
     if (image || altfont) {
       int xs = 0, c = greyedout ? 128 : 255;
@@ -304,11 +304,11 @@ struct mitemimagemanual : mitemmanual {
 
 struct mitemimage : mitemimagemanual {
   mitemimage(gmenu *parent, const char *filename, char *text, char *action,
-             char *hoveraction, color *bgcolor, const char *desc = NULL,
-             const char *altfont = NULL)
+             char *hoveraction, color *bgcolor, const char *desc = nullptr,
+             const char *altfont = nullptr)
       : mitemimagemanual(parent, filename, altfont, text, action, hoveraction,
                          bgcolor, desc) {}
-  virtual ~mitemimage() {
+  ~mitemimage() override {
     DELETEA(text);
     DELETEA(action);
     DELETEA(hoveraction);
@@ -324,12 +324,12 @@ struct mitemmapload : mitemmanual {
 
   mitemmapload(gmenu *parent, const char *filename, char *text, char *action,
                char *hoveraction, const char *desc)
-      : mitemmanual(parent, text, action, hoveraction, NULL, desc),
+      : mitemmanual(parent, text, action, hoveraction, nullptr, desc),
         filename(filename),
-        mapmessage(NULL),
-        image(NULL) {}
+        mapmessage(nullptr),
+        image(nullptr) {}
 
-  virtual ~mitemmapload() {
+  ~mitemmapload() override {
     delstring(filename);
     DELETEA(mapmessage);
     DELETEA(text);
@@ -338,14 +338,14 @@ struct mitemmapload : mitemmanual {
     DELETEA(desc);
   }
 
-  virtual void key(int code, bool isdown, int unicode) {
+  void key(int code, bool isdown, int unicode) override {
     if (code == SDLK_LEFT && parent->xoffs > -50)
       parent->xoffs -= 2;
     else if (code == SDLK_RIGHT && parent->xoffs < 50)
       parent->xoffs += 2;
   }
 
-  virtual void render(int x, int y, int w) {
+  void render(int x, int y, int w) override {
     int c = greyedout ? 128 : 255;
     mitem::render(x, y, w);
     draw_text(text, x, y, c, c, c);
@@ -403,9 +403,9 @@ struct mitemtextinput : mitemtext {
     hideinput = (maskinput != 0);
   }
 
-  virtual int width() { return text_width(text) + menurighttabwidth; }
+  int width() override { return text_width(text) + menurighttabwidth; }
 
-  virtual void render(int x, int y, int w) {
+  void render(int x, int y, int w) override {
     int c = greyedout ? 128 : 255;
     bool sel = isselection();
     if (sel) {
@@ -415,7 +415,7 @@ struct mitemtextinput : mitemtext {
                menuseldescbgcolor);
     }
     draw_text(text, x, y, c, c, c);
-    int cibl = (int)strlen(input.buf);  // current input-buffer length
+    auto cibl = (int)strlen(input.buf);  // current input-buffer length
     int iboff = input.pos > 14 ? (input.pos < cibl ? input.pos - 14 : cibl - 14)
                                : (input.pos == -1 ? (cibl > 14 ? cibl - 14 : 0)
                                                   : 0);  // input-buffer offset
@@ -446,7 +446,7 @@ struct mitemtextinput : mitemtext {
                   : -1);
   }
 
-  virtual void focus(bool on) {
+  void focus(bool on) override {
     if (on && hoveraction) execute(hoveraction);
 
     SDL_EnableUNICODE(on);
@@ -457,7 +457,7 @@ struct mitemtextinput : mitemtext {
     }
   }
 
-  virtual void key(int code, bool isdown, int unicode) {
+  void key(int code, bool isdown, int unicode) override {
     if (input.key(code, isdown, unicode)) modified = true;
     if (action && code == SDLK_RETURN && modified &&
         parent->items.find(this) != parent->items.length() - 1) {
@@ -466,12 +466,12 @@ struct mitemtextinput : mitemtext {
     }
   }
 
-  virtual void init() {
+  void init() override {
     setdefaultvalue();
     modified = false;
   }
 
-  virtual int select() {
+  int select() override {
     int result = 0;
     if (parent->menusel == parent->items.length() - 1) {
       const char *tmp = text;
@@ -530,19 +530,19 @@ struct mitemslider : mitem {
     getmaxvaluewidth();
   }
 
-  virtual ~mitemslider() {
+  ~mitemslider() override {
     opts.deletearrays();
     DELETEA(text);
     DELETEA(valueexp);
     DELETEA(action);
   }
 
-  virtual int width() {
+  int width() override {
     return text_width(text) + (isradio ? 0 : menurighttabwidth) +
            maxvaluewidth + 2 * FONTH;
   }
 
-  virtual void render(int x, int y, int w) {
+  void render(int x, int y, int w) override {
     bool sel = isselection();
     int range = max_ - min_;
     int cval = value - min_;
@@ -564,21 +564,21 @@ struct mitemslider : mitem {
     if (!isradio) {
       blendbox(x + w - menurighttabwidth, y + FONTH / 3, x + w,
                y + FONTH * 2 / 3, false, -1, &gray);
-      int offset = (int)(cval / ((float)range) * menurighttabwidth);
+      auto offset = (int)(cval / ((float)range) * menurighttabwidth);
       blendbox(x + w - menurighttabwidth + offset - FONTH / 6, y,
                x + w - menurighttabwidth + offset + FONTH / 6, y + FONTH, false,
                -1, greyedout ? &gray : (sel ? &whitepulse : &white));
     }
   }
 
-  virtual void key(int code, bool isdown, int unicode) {
+  void key(int code, bool isdown, int unicode) override {
     if (code == SDLK_LEFT)
       slide(false);
     else if (code == SDLK_RIGHT)
       slide(true);
   }
 
-  virtual void init() {
+  void init() override {
     const char *p = valueexp;
     char *v = executeret(p);
     if (v) {
@@ -629,7 +629,7 @@ struct mitemslider : mitem {
     displaycurvalue();
   }
 
-  virtual const char *getaction() { return action; }
+  const char *getaction() override { return action; }
 };
 
 // key input item
@@ -648,26 +648,26 @@ struct mitemkeyinput : mitem {
       : mitem(parent, bgcolor, mitem::TYPE_KEYINPUT),
         text(text),
         bindcmd(bindcmd),
-        keyname(NULL),
+        keyname(nullptr),
         isup(0),
         bindtype(bindtype),
         capture(false){};
 
-  ~mitemkeyinput() {
+  ~mitemkeyinput() override {
     DELETEA(text);
     DELETEA(bindcmd);
   }
 
-  virtual int width() {
+  int width() override {
     return text_width(text) + text_width(keyname ? keyname : " ");
   }
 
-  virtual void render(int x, int y, int w) {
+  void render(int x, int y, int w) override {
     int tw = text_width(keyname ? keyname : " "), c = greyedout ? 128 : 255;
     static color capturec(0.4f, 0, 0);
     if (isselection()) {
       blendbox(x + w - tw - FONTH, y - FONTH / 6, x + w + FONTH,
-               y + FONTH + FONTH / 6, false, -1, capture ? &capturec : NULL);
+               y + FONTH + FONTH / 6, false, -1, capture ? &capturec : nullptr);
       blendbox(x, y - FONTH / 6, x + w - tw - FONTH, y + FONTH + FONTH / 6,
                false, -1, menuseldescbgcolor);
     }
@@ -675,16 +675,16 @@ struct mitemkeyinput : mitem {
     draw_text(keyname, x + w - tw, y, c, c, c);
   }
 
-  virtual void init() {
+  void init() override {
     keynames[0] = 0;
     for (keym **km = findbinda(bindcmd, bindtype); *km; km++)
       concatformatstring(keynames, " or %s", (*km)->name);
     keyname = *keynames ? keynames + 4 : unknown;
     capture = false;
-    menuheader(parent, NULL, NULL);
+    menuheader(parent, nullptr, nullptr);
   }
 
-  virtual int select() {
+  int select() override {
     capture = true;
     isup = 0;
     keyname = empty;
@@ -693,7 +693,7 @@ struct mitemkeyinput : mitem {
     return 0;
   }
 
-  virtual void key(int code, bool isdown, int unicode) {
+  void key(int code, bool isdown, int unicode) override {
     keym *km;
     if (!capture || code < -5 || code > SDLK_MENU || !((km = findbindc(code))))
       return;
@@ -711,7 +711,7 @@ struct mitemkeyinput : mitem {
               "\f3Warning: \"%s\" key is already in use. You can press ESC to "
               "cancel.",
               km->name);
-          menuheader(parent, NULL, keybound);
+          menuheader(parent, nullptr, keybound);
         }
         newkeys.add(code);
         concatformatstring(keynames, "%s or ", km->name);
@@ -752,29 +752,29 @@ struct mitemcheckbox : mitem {
         pos(pos),
         checked(false) {}
 
-  ~mitemcheckbox() {
+  ~mitemcheckbox() override {
     DELETEA(text);
     DELETEA(valueexp);
     DELETEA(action);
   }
 
-  virtual int width() {
+  int width() override {
     return text_width(text) + (pos ? menurighttabwidth : FONTH + FONTH / 3);
   }
 
-  virtual int select() {
+  int select() override {
     checked = !checked;
     return execaction(checked ? "1" : "0");
   }
 
-  virtual void init() {
+  void init() override {
     const char *p = valueexp;
     char *r = executeret(p);
     checked = (r && atoi(r) > 0);
     if (r) delete[] r;
   }
 
-  virtual void render(int x, int y, int w) {
+  void render(int x, int y, int w) override {
     bool sel = isselection();
     const static int boxsize = FONTH;
     int offs =
@@ -802,7 +802,7 @@ struct mitemcheckbox : mitem {
     }
   }
 
-  virtual const char *getaction() { return action; }
+  const char *getaction() override { return action; }
 };
 
 // console iface
@@ -816,8 +816,8 @@ void *addmenu(const char *name, const char *title, bool allowinput,
     name = newstring(name);
     m = &menus[name];
     m->name = name;
-    m->initaction = NULL;
-    m->header = m->footer = NULL;
+    m->initaction = nullptr;
+    m->header = m->footer = nullptr;
     m->menusel = 0;
   }
   m->title = title;
@@ -836,7 +836,7 @@ void *addmenu(const char *name, const char *title, bool allowinput,
 }
 
 void newmenu(char *name, int *hotkeys, int *forwardkeys) {
-  addmenu(name, NULL, true, NULL, NULL, *hotkeys > 0, *forwardkeys > 0);
+  addmenu(name, nullptr, true, nullptr, nullptr, *hotkeys > 0, *forwardkeys > 0);
 }
 COMMAND(newmenu, "sii");
 
@@ -858,7 +858,7 @@ COMMAND(delmenu, "s");
 void menuitemmanual(void *menu, char *text, char *action, color *bgcolor,
                     const char *desc) {
   gmenu &m = *(gmenu *)menu;
-  m.items.add(new mitemmanual(&m, text, action, NULL, bgcolor, desc));
+  m.items.add(new mitemmanual(&m, text, action, nullptr, bgcolor, desc));
 }
 
 void menuimagemanual(void *menu, const char *filename, const char *altfontname,
@@ -866,7 +866,7 @@ void menuimagemanual(void *menu, const char *filename, const char *altfontname,
                      const char *desc) {
   gmenu &m = *(gmenu *)menu;
   m.items.add(new mitemimagemanual(&m, filename, altfontname, text, action,
-                                   NULL, bgcolor, desc));
+                                   nullptr, bgcolor, desc));
 }
 
 void menutitlemanual(void *menu, const char *title) {
@@ -880,8 +880,8 @@ void menuheader(void *menu, char *header, char *footer, bool heap) {
     DELSTRING(m.header);
     DELSTRING(m.footer);
   }
-  m.header = (header && *header) || heap ? header : NULL;
-  m.footer = (footer && *footer) || heap ? footer : NULL;
+  m.header = (header && *header) || heap ? header : nullptr;
+  m.footer = (footer && *footer) || heap ? footer : nullptr;
   m.headfootheap = heap;  // false: "manual"
 }
 
@@ -895,7 +895,7 @@ void menufont(char *menu, const char *usefont) {
   gmenu *m = *menu ? menus.access(menu) : lastmenu;
   if (m) {
     DELSTRING(m->usefont);
-    m->usefont = usefont && *usefont ? newstring(usefont) : NULL;
+    m->usefont = usefont && *usefont ? newstring(usefont) : nullptr;
   }
 }
 COMMAND(menufont, "ss");
@@ -957,8 +957,8 @@ void menuitem(char *text, char *action, char *hoveraction, char *desc) {
   if (!lastmenu) return;
   lastmenu->items.add(new mitemtext(
       lastmenu, newstring(text), newstring(action[0] ? action : text),
-      hoveraction[0] ? newstring(hoveraction) : NULL, NULL,
-      *desc ? newstring(desc) : NULL));
+      hoveraction[0] ? newstring(hoveraction) : nullptr, nullptr,
+      *desc ? newstring(desc) : nullptr));
 }
 COMMAND(menuitem, "ssss");
 
@@ -966,12 +966,12 @@ void menuitemimage(char *name, char *text, char *action, char *hoveraction) {
   if (!lastmenu) return;
   if (fileexists(name, "r") || findfile(name, "r") != name)
     lastmenu->items.add(new mitemimage(
-        lastmenu, name, newstring(text), action[0] ? newstring(action) : NULL,
-        hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+        lastmenu, name, newstring(text), action[0] ? newstring(action) : nullptr,
+        hoveraction[0] ? newstring(hoveraction) : nullptr, nullptr));
   else
     lastmenu->items.add(new mitemtext(
         lastmenu, newstring(text), newstring(action[0] ? action : text),
-        hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+        hoveraction[0] ? newstring(hoveraction) : nullptr, nullptr));
 }
 COMMAND(menuitemimage, "ssss");
 
@@ -979,9 +979,9 @@ void menuitemaltfont(char *altfont, char *text, char *action, char *hoveraction,
                      char *desc) {
   if (!lastmenu) return;
   lastmenu->items.add(new mitemimage(
-      lastmenu, NULL, newstring(text), action[0] ? newstring(action) : NULL,
-      hoveraction[0] ? newstring(hoveraction) : NULL, NULL,
-      desc[0] ? newstring(desc) : NULL, altfont));
+      lastmenu, nullptr, newstring(text), action[0] ? newstring(action) : nullptr,
+      hoveraction[0] ? newstring(hoveraction) : nullptr, nullptr,
+      desc[0] ? newstring(desc) : nullptr, altfont));
 }
 COMMAND(menuitemaltfont, "sssss");
 
@@ -989,9 +989,9 @@ void menuitemmapload(char *name, char *action, char *hoveraction, char *desc) {
   if (!lastmenu) return;
   lastmenu->items.add(
       new mitemmapload(lastmenu, newstring(name), newstring(name),
-                       *action ? newstring(action) : NULL,
-                       *hoveraction ? newstring(hoveraction) : NULL,
-                       *desc ? newstring(desc) : NULL));
+                       *action ? newstring(action) : nullptr,
+                       *hoveraction ? newstring(hoveraction) : nullptr,
+                       *desc ? newstring(desc) : nullptr));
 }
 COMMAND(menuitemmapload, "ssss");
 
@@ -1000,8 +1000,8 @@ void menuitemtextinput(char *text, char *value, char *action, char *hoveraction,
   if (!lastmenu || !text || !value) return;
   lastmenu->items.add(
       new mitemtextinput(lastmenu, newstring(text), newstring(value),
-                         action[0] ? newstring(action) : NULL,
-                         hoveraction[0] ? newstring(hoveraction) : NULL, NULL,
+                         action[0] ? newstring(action) : nullptr,
+                         hoveraction[0] ? newstring(hoveraction) : nullptr, nullptr,
                          *maxchars, *maskinput));
 }
 COMMAND(menuitemtextinput, "ssssii");
@@ -1011,7 +1011,7 @@ void menuitemslider(char *text, int *min_, int *max_, char *value,
   if (!lastmenu) return;
   lastmenu->items.add(new mitemslider(
       lastmenu, newstring(text), *min_, *max_, newstring(value), display,
-      action[0] ? newstring(action) : NULL, NULL, *wrap != 0, false));
+      action[0] ? newstring(action) : nullptr, nullptr, *wrap != 0, false));
 }
 COMMAND(menuitemslider, "siisssi");
 
@@ -1020,7 +1020,7 @@ void menuitemradio(char *text, int *min_, int *max_, char *value, char *display,
   if (!lastmenu) return;
   lastmenu->items.add(new mitemslider(
       lastmenu, newstring(text), *min_, *max_, newstring(value), display,
-      action[0] ? newstring(action) : NULL, NULL, true, true));
+      action[0] ? newstring(action) : nullptr, nullptr, true, true));
 }
 COMMAND(menuitemradio, "siisss");
 
@@ -1028,14 +1028,14 @@ void menuitemcheckbox(char *text, char *value, char *action, int *pos) {
   if (!lastmenu) return;
   lastmenu->items.add(new mitemcheckbox(
       lastmenu, newstring(text), newstring(value),
-      action[0] ? newstring(action) : NULL, clamp(*pos, 0, 100), NULL));
+      action[0] ? newstring(action) : nullptr, clamp(*pos, 0, 100), nullptr));
 }
 COMMAND(menuitemcheckbox, "sssi");
 
 void menuitemkeyinput(char *text, char *bindcmd) {
   if (!lastmenu) return;
   lastmenu->items.add(new mitemkeyinput(lastmenu, newstring(text),
-                                        newstring(bindcmd), NULL,
+                                        newstring(bindcmd), nullptr,
                                         keym::ACTION_DEFAULT));
 }
 COMMAND(menuitemkeyinput, "ss");
@@ -1043,7 +1043,7 @@ COMMAND(menuitemkeyinput, "ss");
 void menuitemeditkeyinput(char *text, char *bindcmd) {
   if (!lastmenu) return;
   lastmenu->items.add(new mitemkeyinput(lastmenu, newstring(text),
-                                        newstring(bindcmd), NULL,
+                                        newstring(bindcmd), nullptr,
                                         keym::ACTION_EDITING));
 }
 COMMAND(menuitemeditkeyinput, "ss");
@@ -1051,7 +1051,7 @@ COMMAND(menuitemeditkeyinput, "ss");
 void menuitemspectkeyinput(char *text, char *bindcmd) {
   if (!lastmenu) return;
   lastmenu->items.add(new mitemkeyinput(lastmenu, newstring(text),
-                                        newstring(bindcmd), NULL,
+                                        newstring(bindcmd), nullptr,
                                         keym::ACTION_SPECTATOR));
 }
 COMMAND(menuitemspectkeyinput, "ss");
@@ -1074,11 +1074,11 @@ void menudirlist(char *dir, char *ext, char *action, int *image,
   if (lastmenu->dirlist) delete lastmenu->dirlist;
   mdirlist *d = lastmenu->dirlist = new mdirlist;
   d->dir = newstring(dir);
-  d->ext = ext[0] ? newstring(ext) : NULL;
-  d->action = action[0] ? newstring(action) : NULL;
+  d->ext = ext[0] ? newstring(ext) : nullptr;
+  d->action = action[0] ? newstring(action) : nullptr;
   d->image = *image != 0;
-  d->searchfile = searchfile[0] ? newstring(searchfile) : NULL;
-  d->subdiraction = NULL;
+  d->searchfile = searchfile[0] ? newstring(searchfile) : nullptr;
+  d->subdiraction = nullptr;
   d->subdirdots = false;
 }
 COMMAND(menudirlist, "sssis");
@@ -1088,12 +1088,12 @@ void menudirlistsub(char *action, int *dots) {
   mdirlist *d = lastmenu->dirlist;
   d->subdirdots = *dots != 0;
   DELETEA(d->subdiraction);
-  d->subdiraction = *action ? newstring(action) : NULL;
+  d->subdiraction = *action ? newstring(action) : nullptr;
 }
 COMMAND(menudirlistsub, "si");
 
 void chmenutexture(char *menu, char *texname, char *title) {
-  gmenu *m = *menu ? menus.access(menu) : NULL;
+  gmenu *m = *menu ? menus.access(menu) : nullptr;
   if (!m) return;
   DELETEA(m->previewtexture);
   if (*texname) m->previewtexture = newstring(texname);
@@ -1242,7 +1242,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod) {
       case SDLK_F12:
         if (curmenu->allowinput) {
           extern void screenshot(const char *filename);
-          screenshot(NULL);
+          screenshot(nullptr);
         }
         break;
     }
@@ -1296,7 +1296,7 @@ bool rendermenumdl() {
     a[0].tag = "tag_weapon";
   }
   rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim | ANIM_DYNALLOC,
-              tex, -1, pos, 0, yaw, pitch, 0, 0, NULL, a,
+              tex, -1, pos, 0, yaw, pitch, 0, 0, nullptr, a,
               m.scale ? m.scale / 25.0f : 1.0f);
 
   glPopMatrix();
@@ -1368,8 +1368,8 @@ void gmenu::init() {
         defformatstring(cdir)("\fs\f1[%s]\fr", subdirs[i]);
         defformatstring(act)("%s %s", dirlist->subdiraction,
                              escapestring(subdirs[i]));
-        items.add(new mitemtext(this, newstring(cdir), newstring(act), NULL,
-                                NULL, NULL));
+        items.add(new mitemtext(this, newstring(cdir), newstring(act), nullptr,
+                                nullptr, nullptr));
       }
     }
 
@@ -1397,7 +1397,7 @@ void gmenu::init() {
            *d = (strcmp(dirlist->ext, "cgz") || dirlist->searchfile) &&
                         browsefiledesc
                     ? getfiledesc(dirlist->dir, f, dirlist->ext)
-                    : NULL;
+                    : nullptr;
       bool filefound = false;
       if (dirlist->searchfile) {
         string fuc, duc;
@@ -1420,20 +1420,20 @@ void gmenu::init() {
           concatstring(fullname, dirlist->ext);
         }
         items.add(new mitemimage(this, newstring(fullname), f,
-                                 newstring(dirlist->action), NULL, NULL, d));
+                                 newstring(dirlist->action), nullptr, nullptr, d));
       } else if (!strcmp(dirlist->ext, "cgz")) {
         if (!dirlist->searchfile || filefound) {
           items.add(new mitemmapload(this, newstring(f), newstring(f),
-                                     newstring(dirlist->action), NULL, NULL));
+                                     newstring(dirlist->action), nullptr, nullptr));
         }
         DELSTRING(d);
       } else if (!strcmp(dirlist->ext, "dmo")) {
         if (!dirlist->searchfile || filefound)
-          items.add(new mitemtext(this, f, newstring(dirlist->action), NULL,
-                                  NULL, d));
+          items.add(new mitemtext(this, f, newstring(dirlist->action), nullptr,
+                                  nullptr, d));
       } else
         items.add(
-            new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
+            new mitemtext(this, f, newstring(dirlist->action), nullptr, nullptr, d));
     }
   }
   loopv(items) items[i]->init();
@@ -1455,9 +1455,9 @@ FVAR(menutexturesize, 0.1f, 1.0f, 5.0f);
 FVAR(menupicturesize, 0.1f, 1.6f, 5.0f);
 
 void rendermenutexturepreview(char *previewtexture, int w, const char *title) {
-  static Texture *pt = NULL;
+  static Texture *pt = nullptr;
   static uint last_pt = 0;
-  bool ispicture = title != NULL;
+  bool ispicture = title != nullptr;
   uint cur_pt = hthash(previewtexture);
   if (cur_pt != last_pt) {
     silent_texture_load = ispicture;
@@ -1482,7 +1482,7 @@ void gmenu::render() {
   extern bool ignoreblinkingbit;
   if (usefont) pushfont(usefont);
   if (!allowblink) ignoreblinkingbit = true;
-  bool synctabs = title != NULL || synctabstops;
+  bool synctabs = title != nullptr || synctabstops;
   const char *t = title;
   if (!t) {
     static string buf;
@@ -1561,15 +1561,15 @@ void gmenu::render() {
 }
 
 void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border) {
-  static Texture *tex = NULL;
+  static Texture *tex = nullptr;
   if (!tex) tex = textureload("packages/misc/menu.jpg");
   static color transparent(1, 1, 1, 0.75f);
-  blendbox(x1, y1, x2, y2, border, tex->id, allowinput ? NULL : &transparent);
+  blendbox(x1, y1, x2, y2, border, tex->id, allowinput ? nullptr : &transparent);
 }
 
 // apply changes menu
 
-void *applymenu = NULL;
+void *applymenu = nullptr;
 static vector<const char *> needsapply;
 VARP(applydialog, 0, 1, 1);
 
@@ -1595,17 +1595,17 @@ void clearchanges(int type) {
 }
 
 void refreshapplymenu(void *menu, bool init) {
-  gmenu *m = (gmenu *)menu;
+  auto *m = (gmenu *)menu;
   if (!m || (!init && needsapply.length() != m->items.length() - 3)) return;
   m->items.deletecontents();
   loopv(needsapply) m->items.add(
-      new mitemtext(m, newstring(needsapply[i]), NULL, NULL, NULL));
-  m->items.add(new mitemtext(m, newstring(""), NULL, NULL, NULL));
+      new mitemtext(m, newstring(needsapply[i]), nullptr, nullptr, nullptr));
+  m->items.add(new mitemtext(m, newstring(""), nullptr, nullptr, nullptr));
   m->items.add(
-      new mitemtext(m, newstring("Yes"), newstring("resetgl"), NULL, NULL));
+      new mitemtext(m, newstring("Yes"), newstring("resetgl"), nullptr, nullptr));
   m->items.add(new mitemtext(
       m, newstring("No"),
-      newstring("echo [..restart AssaultCube to apply the new settings]"), NULL,
-      NULL));
+      newstring("echo [..restart AssaultCube to apply the new settings]"), nullptr,
+      nullptr));
   if (init) m->menusel = m->items.length() - 2;  // select OK
 }

@@ -73,7 +73,7 @@ void scaletexture(uchar *src, uint sw, uint sh, uint bpp, uchar *dst, uint dw,
   }
 }
 
-Texture *notexture = NULL, *noworldtexture = NULL;
+Texture *notexture = nullptr, *noworldtexture = nullptr;
 
 #define TEXSCALEPREFIXSIZE 8
 hashtable<char *, Texture> textures;
@@ -133,7 +133,7 @@ void uploadtexture(GLenum target, GLenum internal, int tw, int th,
                    GLenum format, GLenum type, void *pixels, int pw, int ph,
                    bool mipmap) {
   int bpp = formatsize(format);
-  uchar *buf = NULL;
+  uchar *buf = nullptr;
   if (pw != tw || ph != th) {
     buf = new uchar[tw * th * bpp];
     scaletexture((uchar *)pixels, pw, ph, bpp, buf, tw, th);
@@ -194,7 +194,7 @@ SDL_Surface *wrapsurface(void *data, int width, int height, int bpp) {
       return SDL_CreateRGBSurfaceFrom(data, width, height, 8 * bpp, bpp * width,
                                       RGBAMASKS);
   }
-  return NULL;
+  return nullptr;
 }
 
 SDL_Surface *creatergbsurface(int width, int height) {
@@ -208,7 +208,7 @@ SDL_Surface *creatergbasurface(int width, int height) {
 SDL_Surface *forcergbsurface(SDL_Surface *os) {
   SDL_Surface *ns =
       SDL_CreateRGBSurface(SDL_SWSURFACE, os->w, os->h, 24, RGBMASKS);
-  if (ns) SDL_BlitSurface(os, NULL, ns, NULL);
+  if (ns) SDL_BlitSurface(os, nullptr, ns, nullptr);
   SDL_FreeSurface(os);
   return ns;
 }
@@ -218,7 +218,7 @@ SDL_Surface *forcergbasurface(SDL_Surface *os) {
       SDL_CreateRGBSurface(SDL_SWSURFACE, os->w, os->h, 32, RGBAMASKS);
   if (ns) {
     SDL_SetAlpha(os, 0, 0);
-    SDL_BlitSurface(os, NULL, ns, NULL);
+    SDL_BlitSurface(os, nullptr, ns, nullptr);
   }
   SDL_FreeSurface(os);
   return ns;
@@ -264,10 +264,10 @@ int fixcl(SDL_Surface *s, int threshold) {
 }
 
 SDL_Surface *fixsurfaceformat(SDL_Surface *s) {
-  if (!s) return NULL;
+  if (!s) return nullptr;
   if (!s->pixels || min(s->w, s->h) <= 0 || s->format->BytesPerPixel <= 0) {
     SDL_FreeSurface(s);
-    return NULL;
+    return nullptr;
   }
   static const uint rgbmasks[] = {RGBMASKS}, rgbamasks[] = {RGBAMASKS};
   switch (s->format->BytesPerPixel) {
@@ -309,7 +309,7 @@ SDL_Surface *texdecal(SDL_Surface *s) {
   SDL_Surface *m =
       SDL_CreateRGBSurface(SDL_SWSURFACE, s->w, s->h, 16, 0, 0, 0, 0);
   if (!m) fatal("create surface");
-  uchar *dst = (uchar *)m->pixels, *src = (uchar *)s->pixels;
+  auto *dst = (uchar *)m->pixels, *src = (uchar *)s->pixels;
   loopi(s->h * s->w) {
     *dst++ = *src;
     *dst++ = 255 - *src;
@@ -321,7 +321,7 @@ SDL_Surface *texdecal(SDL_Surface *s) {
 
 void scalesurface(SDL_Surface *s, float scale) {
   uint dw = s->w * scale, dh = s->h * scale;
-  uchar *buf = new uchar[dw * dh * s->format->BytesPerPixel];
+  auto *buf = new uchar[dw * dh * s->format->BytesPerPixel];
   scaletexture((uchar *)s->pixels, s->w, s->h, s->format->BytesPerPixel, buf,
                dw, dh);
   delete[](uchar *) s->pixels;
@@ -348,7 +348,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp,
     file++;
   }
 
-  SDL_Surface *s = NULL;
+  SDL_Surface *s = nullptr;
   const char *ffile = findfile(file, "rb");
   if (findfilelocation == FFL_ZIP) {
     stream *z = openzipfile(file, "rb");
@@ -476,7 +476,7 @@ void _texture(Slot &s, float *scale, char *name) {
     filtertext(name, name, FTXT__MEDIAFILENAME);
     concatstring(s.name, name);
   }
-  s.tex = NULL;
+  s.tex = nullptr;
   s.loaded = false;
   if (scale) {
     s.orgscale = *scale;
@@ -516,7 +516,7 @@ const char *gettextureslot(int i) {
     formatstring(res)("texture %s \"%s\"", floatstr(s.orgscale, true), s.name);
     return res;
   } else
-    return NULL;
+    return nullptr;
 }
 
 Texture *lookuptexture(int tex, Texture *failtex, bool trydl) {
@@ -556,7 +556,7 @@ bool reloadtexture(Texture &t) {
 
 void reloadtextures() { enumerate(textures, Texture, t, reloadtexture(t)); }
 
-Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
+Texture *sky[6] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
 
 SVARF(loadsky, "", { loadskymap(false); });
 
@@ -856,7 +856,7 @@ void cleanuptmus() {
   loopi(MAXTMUS) tmus[i] = invalidtmu;
 }
 
-Texture *e_wall = NULL, *e_floor = NULL, *e_ceil = NULL;
+Texture *e_wall = nullptr, *e_floor = nullptr, *e_ceil = nullptr;
 
 void guidetoggle() {
   if (player1->state == CS_EDITING) {
@@ -865,7 +865,7 @@ void guidetoggle() {
     Slot *sc = &slots[DEFAULT_CEIL];
 
     // if textures match original texture
-    if (e_wall == NULL || e_floor == NULL || e_ceil == NULL) {
+    if (e_wall == nullptr || e_floor == nullptr || e_ceil == nullptr) {
       // replace defaults with grid texures
       e_wall = sw->tex;
       e_floor = sf->tex;
@@ -879,9 +879,9 @@ void guidetoggle() {
       if (e_wall) sw->tex = e_wall;
       if (e_floor) sf->tex = e_floor;
       if (e_ceil) sc->tex = e_ceil;
-      e_wall = NULL;
-      e_floor = NULL;
-      e_ceil = NULL;
+      e_wall = nullptr;
+      e_floor = nullptr;
+      e_ceil = nullptr;
       conoutf("Guide: \fBoff");
     }
   } else {
@@ -929,7 +929,7 @@ void gettexturelist(
   loopv(files) {
     char *f = files[i] + pn;
     const char *p = parentdir(f), *b = behindpath(f);
-    cvecprintf(res, "\"%s\" \"%s\"", p,
+    cvecprintf(res, R"("%s" "%s")", p,
                b);  // always add columns for path (without
                     // "packages/textures/") and filename
     if (cutprefix)
@@ -962,13 +962,13 @@ void textureslotusagemapmodels(int *used) {
   used[0] = old0;
 }
 
-void textureslotusagegeometry(int *used, int *visible = NULL,
-                              int *mostvisible = NULL) {
+void textureslotusagegeometry(int *used, int *visible = nullptr,
+                              int *mostvisible = nullptr) {
   sqr *s = world;
-  int *mostw = mostvisible ? new int[1024] : NULL,
-      *mostc = mostvisible ? mostw + 256 : NULL,
-      *mostf = mostvisible ? mostw + 512 : NULL,
-      *mostu = mostvisible ? mostw + 768 : NULL;
+  int *mostw = mostvisible ? new int[1024] : nullptr,
+      *mostc = mostvisible ? mostw + 256 : nullptr,
+      *mostf = mostvisible ? mostw + 512 : nullptr,
+      *mostu = mostvisible ? mostw + 768 : nullptr;
   if (mostvisible) loopi(1024) mostw[i] = 0;
   if (visible) calcworldvisibility();
   loopirev(cubicsize) {
@@ -1021,7 +1021,7 @@ void textureslotusagelist(char *what) {
       used[i];  // all mapmodel uses count as "visible" as well
   if (strcmp(what, "onlymodels")) {  // if not only models, count map geometry
     textureslotusagegeometry(used, visible,
-                             onlymostvisible ? mostvisible : NULL);
+                             onlymostvisible ? mostvisible : nullptr);
   }
   vector<char> res;
   if (onlymostvisible)
@@ -1079,7 +1079,7 @@ void deletetextureslot(int *n, char *opt,
     return;
   }
   int deld = 0, replace = 256;
-  if (purgeall && isdigit(*_replace)) replace = strtol(_replace, NULL, 0) & 255;
+  if (purgeall && isdigit(*_replace)) replace = strtol(_replace, nullptr, 0) & 255;
   if (replace > *n) replace--;
   sqr *s = world;
   loopirev(cubicsize) {  // check, if cubes use the texture
@@ -1146,7 +1146,7 @@ void edittextureslot(int *n, char *scale,
     if ((*scale || *name) && !noteditmode("edittextureslot") &&
         !multiplayer("edittextureslot")) {  // change attributes
       float newscale = atof(scale);
-      _texture(s, *scale ? &newscale : NULL, *name ? name : NULL);
+      _texture(s, *scale ? &newscale : nullptr, *name ? name : nullptr);
       unsavededits++;
       hdr.flags |= MHF_AUTOMAPCONFIG;  // requires automapcfg
     }
@@ -1193,7 +1193,7 @@ COMMAND(textureslotbyname, "s");
 // proper textures assigned (pasting will add any missing texture slots)
 
 void *texconfig_copy() {
-  vector<Slot> *s = new vector<Slot>;
+  auto *s = new vector<Slot>;
   loopv(slots) s->add(slots[i]);
   return (void *)s;
 }
@@ -1205,7 +1205,7 @@ uchar *texconfig_paste(
     uchar *usedslots)  // create mapping table to translate pasted geometry to
                        // this maps texture list - add any missing textures
 {
-  vector<Slot> *s = (vector<Slot> *)_s;
+  auto *s = (vector<Slot> *)_s;
   static uchar res[256];
   loopi(256) res[i] = i;
   loopi(256) if (usedslots[i] && s->inrange(i)) {

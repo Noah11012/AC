@@ -249,7 +249,7 @@ bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude,
     if ((sx1 >= 1 && x >= 1) || (sy1 >= 1 && y >= 1) ||
         (sx2 <= -1 && x <= -1) || (sy2 <= -1 && y <= -1))
       return false;
-    int tx = int(floor(SHADOWCOLUMNS * (y + 1) / 2)),
+    auto tx = int(floor(SHADOWCOLUMNS * (y + 1) / 2)),
         ty = int(floor(SHADOWROWS * (x + 1) / 2)),
         tx1 = int(floor(SHADOWCOLUMNS * (sy1 + 1) / 2)),
         ty1 = int(floor(SHADOWROWS * (sx1 + 1) / 2)),

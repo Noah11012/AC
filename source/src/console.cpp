@@ -31,7 +31,7 @@ struct console : consolebuffer<cline> {
 
   static const int WORDWRAP = 80;
 
-  int fullconsole;
+  int fullconsole{false};
   void toggleconsole() {
     if (!fullconsole)
       fullconsole = altconsize ? 1 : 2;
@@ -45,7 +45,7 @@ struct console : consolebuffer<cline> {
     numconlines++;
   }
 
-  void render() {
+  void render() override {
     int conwidth = (fullconsole ? VIRTW : int(floor(getradarpos().x))) * 2 -
                    2 * CONSPAD - 2 * FONTH / 3;
     int h = VIRTH * 2 - 2 * CONSPAD - 2 * FONTH / 3;
@@ -99,12 +99,12 @@ struct console : consolebuffer<cline> {
     }
   }
 
-  console() : consolebuffer<cline>(200), fullconsole(false) {}
+  console() : consolebuffer<cline>(200) {}
 };
 
 console con;
 textinputbuffer cmdline;
-char *cmdaction = NULL, *cmdprompt = NULL;
+char *cmdaction = nullptr, *cmdprompt = nullptr;
 bool saycommandon = false, storeinputcommand = false;
 
 VARFP(maxcon, 10, 200, 1000, con.setmaxlines(maxcon));
@@ -117,7 +117,7 @@ COMMANDN(toggleconsole, toggleconsole, "");
 
 void renderconsole() { con.render(); }
 
-stream *clientlogfile = NULL;
+stream *clientlogfile = nullptr;
 vector<char> *bootclientlog = new vector<char>;
 int clientloglinesremaining = INT_MAX;
 
@@ -180,7 +180,7 @@ COMMAND(keymap, "is");
 
 keym *findbind(const char *key) {
   loopv(keyms) if (!strcasecmp(keyms[i].name, key)) return &keyms[i];
-  return NULL;
+  return nullptr;
 }
 
 keym **findbinda(const char *action, int type) {
@@ -194,7 +194,7 @@ keym **findbinda(const char *action, int type) {
 
 keym *findbindc(int code) {
   loopv(keyms) if (keyms[i].code == code) return &keyms[i];
-  return NULL;
+  return nullptr;
 }
 
 void findkey(int *code) {
@@ -224,8 +224,8 @@ COMMAND(findkeycode, "s");
 COMMANDF(modkeypressed, "",
          () { intret((SDL_GetModState() & MOD_KEYS_CTRL) ? 1 : 0); });
 
-keym *keypressed = NULL;
-char *keyaction = NULL;
+keym *keypressed = nullptr;
+char *keyaction = nullptr;
 
 VAR(_defaultbinds, 0, 0, 1);
 
@@ -323,7 +323,7 @@ struct releaseaction {
 vector<releaseaction> releaseactions;
 
 char *addreleaseaction(const char *s) {
-  if (!keypressed) return NULL;
+  if (!keypressed) return nullptr;
   releaseaction &ra = releaseactions.add();
   ra.key = keypressed;
   ra.action = newstring(s);
@@ -410,9 +410,9 @@ void pasteconsole(char *dst) {
 }
 
 struct hline {
-  char *buf, *action, *prompt;
+  char *buf{NULL}, *action{NULL}, *prompt{NULL};
 
-  hline() : buf(NULL), action(NULL), prompt(NULL) {}
+  hline()  {}
   ~hline() {
     DELETEA(buf);
     DELETEA(action);
@@ -432,8 +432,8 @@ struct hline {
   bool shouldsave() {
     return strcmp(cmdline.buf, buf) ||
            (cmdaction ? !action || strcmp(cmdaction, action)
-                      : action != NULL) ||
-           (cmdprompt ? !prompt || strcmp(cmdprompt, prompt) : prompt != NULL);
+                      : action != nullptr) ||
+           (cmdprompt ? !prompt || strcmp(cmdprompt, prompt) : prompt != nullptr);
   }
 
   void save() {
@@ -483,13 +483,13 @@ void savehistory() {
 }
 
 void loadhistory() {
-  char *histbuf = loadfile(path("config/history", true), NULL);
+  char *histbuf = loadfile(path("config/history", true), nullptr);
   if (!histbuf) return;
-  char *line = NULL, *b;
+  char *line = nullptr, *b;
   line = strtok_r(histbuf, "\n", &b);
   while (line) {
     history.add(new hline)->buf = newstring(line);
-    line = strtok_r(NULL, "\n", &b);
+    line = strtok_r(nullptr, "\n", &b);
   }
   DELETEA(histbuf);
   histpos = history.length();
@@ -515,14 +515,14 @@ void execbind(keym &k, bool isdown) {
     keyaction = action;
     keypressed = &k;
     execute(keyaction);
-    keypressed = NULL;
+    keypressed = nullptr;
     if (keyaction != action) delete[] keyaction;
   }
   k.pressed = isdown;
 }
 
 void consolekey(int code, bool isdown, int cooked, SDLMod mod) {
-  static char *beforecomplete = NULL;
+  static char *beforecomplete = nullptr;
   static bool ignoreescup = false;
   if (isdown) {
     switch (code) {
@@ -581,7 +581,7 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod) {
       // make laptop users happy; LMB shall only work with history
       if (code == SDL_AC_BUTTON_LEFT && histpos == history.length()) return;
 
-      hline *h = NULL;
+      hline *h = nullptr;
       if (cmdline.buf[0] || cmdaction) {
         if (history.empty() || history.last()->shouldsave()) {
           if (maxhistory && history.length() >= maxhistory) {
@@ -593,7 +593,7 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod) {
           h = history.last();
       }
       histpos = history.length();
-      saycommand(NULL);
+      saycommand(nullptr);
       if (h) {
         h->run();
         if (h->action && !storeinputcommand) history.drop();
@@ -601,13 +601,13 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod) {
     } else if ((code == SDLK_ESCAPE && !ignoreescup) ||
                code == SDL_AC_BUTTON_RIGHT) {
       histpos = history.length();
-      saycommand(NULL);
+      saycommand(nullptr);
     }
   }
 }
 
 void keypress(int code, bool isdown, int cooked, SDLMod mod) {
-  keym *haskey = NULL;
+  keym *haskey = nullptr;
   loopv(keyms) if (keyms[i].code == code) {
     haskey = &keyms[i];
     break;
@@ -628,7 +628,7 @@ void keypress(int code, bool isdown, int cooked, SDLMod mod) {
 
 char *getcurcommand(int *pos) {
   if (pos && saycommandon) *pos = cmdline.pos;
-  return saycommandon ? cmdline.buf : NULL;
+  return saycommandon ? cmdline.buf : nullptr;
 }
 
 VARP(omitunchangeddefaultbinds, 0, 1, 2);
