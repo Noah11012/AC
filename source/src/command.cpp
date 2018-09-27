@@ -311,7 +311,7 @@ void getvarrange (char *_what, char *name)
                 intret (*i);
                 return;
             case ID_FVAR:
-                floatret (*(static_cast<float *>(i)), true);
+                floatret (static_cast<float>(*i), true);
                 return;
             }
     }
