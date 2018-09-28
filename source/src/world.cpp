@@ -786,7 +786,7 @@ void setupworld (int factor)
     loopi (LARGEST_FACTOR * 2)
     {
         wmip[i] = w;
-        w += cubicsize >> (i * 2);
+        w += static_cast<long>(cubicsize) >> static_cast<long>(i * 2);
     }
 }
 
