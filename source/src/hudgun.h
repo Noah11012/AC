@@ -67,6 +67,7 @@ struct weaponmove
 
             if (p->weaponsel == p->lastattackweapon)
             {
+                animtime = animtime > 0 ? animtime : 1;
                 progress = max (0.0f, min (1.0f, timediff / (float)animtime));
                 // f(x) = -sin(x-1.5)^3
                 kick = -sinf (pow ((1.5f * progress) - 1.5f, 3));
